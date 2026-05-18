@@ -1,0 +1,15 @@
+data/raw/
+data/processed/
+__pycache__/
+*.pyc
+*.h5
+*.fbz
+*.npy
+*.npz
+*.log
+results/*.png
+results/*.json
+venvs/
+.env
+*.egg-info/
+cuda-repo-*.deb
