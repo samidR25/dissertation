@@ -1,0 +1,148 @@
+/home/samidunix/dissertation/code/preprocessing/eda.py:31: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  raw = mne.io.read_raw_edf(EDF_FILE, preload=True, verbose=False)
+============================================================
+1. FILE PROPERTIES
+============================================================
+Sampling rate : 256.0 Hz
+Channels      : 23
+Duration      : 3600.0 s  (60.0 min)
+Channel names : ['FP1-F7', 'F7-T7', 'T7-P7', 'P7-O1', 'FP1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 'FP2-F4', 'F4-C4', 'C4-P4', 'P4-O2', 'FP2-F8', 'F8-T8', 'T8-P8-0', 'P8-O2', 'FZ-CZ', 'CZ-PZ', 'P7-T7', 'T7-FT9', 'FT9-FT10', 'FT10-T8', 'T8-P8-1']
+Expected shape: (23, 921599) samples
+
+============================================================
+2. CHANNEL AVAILABILITY CHECK
+============================================================
+Common channels present : 17/18
+Missing                 : ['T8-P8']
+NOTE: record this in your dissertation methodology section
+
+============================================================
+3. RAW SIGNAL PLOT
+============================================================
+NOTE: pick_channels() is a legacy function. New code should use inst.pick(...).
+Saved: results/eda_raw_signal.png
+
+============================================================
+4. POWER SPECTRAL DENSITY
+============================================================
+NOTE: plot_psd() is a legacy function. New code should use .compute_psd().plot().
+/home/samidunix/dissertation/code/preprocessing/eda.py:98: RuntimeWarning: Channel locations not available. Disabling spatial colors.
+  fig = raw_common.plot_psd(fmax=80, show=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+/home/samidunix/dissertation/code/preprocessing/eda.py:163: RuntimeWarning: Channel names are not unique, found duplicates for: {'T8-P8'}. Applying running numbers for duplicates.
+  r = mne.io.read_raw_edf(edf_path, preload=False, verbose=False)
+Saved: results/eda_psd.png
+What to look for:
+  - Peak around 10 Hz (alpha) = normal resting EEG
+  - Spike at 60 Hz = mains interference (US recording) — notch filter needed
+  - Flat/noisy spectrum = artefact or bad electrode
+
+============================================================
+5. CLASS BALANCE (all chb01 files)
+============================================================
+Total recording  : 40.55 hours
+Seizure time     : 442.0 s  (0.30%)
+Non-seizure time : 145545.8 s  (99.70%)
+Imbalance ratio  : 1 seizure window : ~329 non-seizure windows
+
+>> SMOTE oversampling OR class-weighted loss is mandatory.
+>> A model predicting all non-seizure would score ~98% accuracy.
+>> Use SENSITIVITY as your primary metric, not accuracy.
+
+============================================================
+6. SEIZURE EVENT INVENTORY
+============================================================
+  chb01_03.edf  →  2996s – 3036s  (duration: 40s)
+  chb01_04.edf  →  1467s – 1494s  (duration: 27s)
+  chb01_15.edf  →  1732s – 1772s  (duration: 40s)
+  chb01_16.edf  →  1015s – 1066s  (duration: 51s)
+  chb01_18.edf  →  1720s – 1810s  (duration: 90s)
+  chb01_21.edf  →  327s – 420s  (duration: 93s)
+  chb01_26.edf  →  1862s – 1963s  (duration: 101s)
+
+Total seizures in chb01: 7
+Note: chb01 is paediatric female, age ~11.
+Seizure morphology varies per patient — train/test on same patient first.
+
+=== EDA complete. Review plots before running preprocessing. ===
