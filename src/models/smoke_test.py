@@ -136,4 +136,4 @@ if args.gate >= 3:
 
     print(f"Gate 3 ✓  Val loss {vl[0]:.4f} → {vl[-1]:.4f} | Overfit gap {gap:.3f}")
     print("\nGate 3 PASSED → run full training:")
-    print("   python3 code/models/train_baseline.py --patient chb01")
+    print("   python3 src/models/train_baseline.py --patient chb01")
