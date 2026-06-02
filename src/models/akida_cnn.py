@@ -56,13 +56,18 @@ def build_seizure_cnn(n_channels: int = 18,
     """
     inp = keras.Input(shape=(n_channels, window_samples, 1),
                       name='eeg_input')
+        # Rescaling: [0,255] inputs → [0,1] for the network internals.
+    # Must be first layer — AKD1000 v1 constraint (compatibility_checks.py).
+    # Means training, conversion, and hardware inference all use identical
+    # [0,255] inputs with no per-script scaling logic anywhere.
+    x = keras.layers.Rescaling(scale=1.0/255.0, name='rescaling')(inp)
 
     # ── Block 1 — temporal (per-channel) ─────────────────────────────────────
     # padding='valid' on FIRST Conv2D — quantizeml 1.2.3 bug strips 'same' here.
     # (1,7) kernel: spans 7 time steps, 1 channel → per-electrode temporal filter.
     # stride (1,4): reduces time dim 512 → 127, cutting compute significantly.
     x = keras.layers.Conv2D(32, (1, 7), strides=(1, 4), padding='valid',
-                            use_bias=False, name='conv1')(inp)
+                            use_bias=False, name='conv1')(x)
     # MaxPool before ReLU: confirmed working order (probe3 A).
     # padding='valid' must match conv1's padding (constraint #12).
     x = keras.layers.MaxPooling2D((1, 2), padding='valid', name='pool1')(x)

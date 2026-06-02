@@ -11,10 +11,10 @@ Produces:
   results/training_curves_{patient}.png  loss + accuracy curves
 
 Usage:
-    python3 code/models/train_baseline.py
-    python3 code/models/train_baseline.py --patient chb02
-    python3 code/models/train_baseline.py --patient chb01 --class-weight 5.0
-    python3 code/models/train_baseline.py --patient chb01 --epochs 150 --batch 32
+    python3 src/models/train_baseline.py
+    python3 src/models/train_baseline.py --patient chb02
+    python3 src/models/train_baseline.py --patient chb01 --class-weight 5.0
+    python3 src/models/train_baseline.py --patient chb01 --epochs 150 --batch 32
 """
 import argparse, json, os, sys
 import numpy as np
@@ -46,7 +46,7 @@ else:
 # ── Data ──────────────────────────────────────────────────────────
 npz = f'data/processed/{args.patient}_dataset_ann.npz'
 assert os.path.exists(npz), \
-    f"Dataset not found: {npz}\nRun: python3 code/preprocessing/build_dataset.py"
+    f"Dataset not found: {npz}\nRun: python3 src/preprocessing/build_dataset.py"
 
 data    = np.load(npz)
 X_train = data['X_train'][..., np.newaxis].astype('float32')
@@ -146,10 +146,10 @@ print(f"{'='*50}")
 
 if sensitivity < 0.75:
     print(f"\n⚠  Sensitivity {sensitivity:.3f} below target.")
-    print(f"   Retry: python3 code/models/train_baseline.py --patient {args.patient} --class-weight 5.0")
+    print(f"   Retry: python3 src/models/train_baseline.py --patient {args.patient} --class-weight 5.0")
 if fpr_per_hour > 5.0:
     print(f"\n⚠  FPR {fpr_per_hour:.2f}/hr above tolerance.")
-    print(f"   Retry: python3 code/models/train_baseline.py --patient {args.patient} --class-weight 2.0")
+    print(f"   Retry: python3 src/models/train_baseline.py --patient {args.patient} --class-weight 2.0")
 
 # ── Save ──────────────────────────────────────────────────────────
 results = {
@@ -180,4 +180,4 @@ plt.tight_layout()
 curve_path = f'results/training_curves_{args.patient}.png'
 plt.savefig(curve_path, dpi=120)
 print(f"Curves:  {curve_path}")
-print(f"\nNext: python3 code/models/convert_to_snn.py --patient {args.patient}")
+print(f"\nNext: python3 src/models/convert_to_snn.py --patient {args.patient}")
