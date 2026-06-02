@@ -5,17 +5,17 @@
   "activation_bits": 4,
   "per_tensor_activations": true,
   "akida_version": "v1 (AKD1000)",
-  "finetune_epochs": 10,
+  "finetune_epochs": 5,
   "calibration_samples": 512,
   "ann": {
-    "sensitivity": 0.9989,
-    "specificity": 0.9984
+    "sensitivity": 0.9359,
+    "specificity": 1.0
   },
   "snn_simulator": {
-    "sensitivity": 0.0,
-    "specificity": 1.0,
-    "sensitivity_drop": 0.9989,
-    "drop_acceptable": false
+    "sensitivity": 1.0,
+    "specificity": 0.9484,
+    "sensitivity_drop": -0.0641,
+    "drop_acceptable": true
   },
   "model_path": "results/seizure_model_chb01_w4a4.fbz"
 }
