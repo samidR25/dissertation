@@ -315,20 +315,25 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
     np.savez_compressed(raw_path, X=X, y=y)
     print(f"\nRaw windows saved: {raw_path}")
 
-    # Save spike-encoded windows for AKIDA
-    spikes = rate_encode(X)
-    spike_path = os.path.join(output_dir, f'{patient_id}_spikes.npz')
-    np.savez_compressed(spike_path, X=spikes, y=y)
-    print(f"Spike arrays saved: {spike_path}")
-
     return X, y
 
 
 if __name__ == '__main__':
-    PATIENT_DIR = ('data/raw/chbmit/physionet.org/files/chbmit/1.0.0/chb01/')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--patient', default='chb01',
+                        help='Patient ID (e.g. chb01, chb02)')
+    parser.add_argument('--data-dir', default='data/raw/chbmit/physionet.org/files/chbmit/1.0.0/')
+    parser.add_argument('--output-dir', default='data/processed/')
+    args = parser.parse_args()
+
+    patient_dir = os.path.join(args.data_dir, args.patient)
+    assert os.path.exists(patient_dir), \
+        f"Patient directory not found: {patient_dir}"
+
     X, y = build_patient_dataset(
-        patient_dir=PATIENT_DIR,
-        patient_id='chb01',
-        output_dir='data/processed/'
+        patient_dir=patient_dir,
+        patient_id=args.patient,
+        output_dir=args.output_dir
     )
     print("\nPreprocessing complete.")

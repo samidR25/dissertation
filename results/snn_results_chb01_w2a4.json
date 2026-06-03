@@ -1,0 +1,21 @@
+{
+  "patient": "chb01",
+  "eval_set": "train",
+  "weight_bits": 2,
+  "activation_bits": 4,
+  "per_tensor_activations": true,
+  "akida_version": "v1 (AKD1000)",
+  "finetune_epochs": 5,
+  "calibration_samples": 512,
+  "ann": {
+    "sensitivity": 0.9359,
+    "specificity": 1.0
+  },
+  "snn_simulator": {
+    "sensitivity": 1.0,
+    "specificity": 0.0011,
+    "sensitivity_drop": -0.0641,
+    "drop_acceptable": true
+  },
+  "model_path": "results/seizure_model_chb01_w2a4.fbz"
+}

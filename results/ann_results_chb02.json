@@ -1,0 +1,11 @@
+{
+  "patient": "chb02",
+  "eval_set": "train (chb01: no seizures in test)",
+  "sensitivity": 1.0,
+  "specificity": 1.0,
+  "fpr_per_hour": 0.0,
+  "epochs_trained": 56,
+  "class_weight": 1.5,
+  "checkpoint": "results/best_ann_chb02.h5",
+  "target_met": true
+}

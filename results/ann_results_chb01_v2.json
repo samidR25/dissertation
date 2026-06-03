@@ -1,0 +1,13 @@
+{
+  "patient": "chb01",
+  "model_version": 2,
+  "eval_set": "train",
+  "sensitivity": 0.9695,
+  "specificity": 0.9998,
+  "fpr_per_hour": 0.2,
+  "epochs_trained": 27,
+  "class_weight": 1.5,
+  "finetune_from": null,
+  "checkpoint": "results/best_ann_chb01_v2.h5",
+  "target_met": true
+}
