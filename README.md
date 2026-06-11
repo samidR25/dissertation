@@ -9,7 +9,7 @@ End-to-end pipeline for epileptic seizure detection on neuromorphic silicon: fro
 
 ## Hardware
 
-![RPi 5 + AKD1000 M.2 hardware setup](assets/hardware_setup.jpg)
+![RPi 5 + AKD1000 M.2 hardware setup](assets/hardware_setup.jpeg)
 
 *Raspberry Pi 5 with BrainChip AKD1000 REV2.0 M.2 card via PCIe M.2 HAT+*
 
