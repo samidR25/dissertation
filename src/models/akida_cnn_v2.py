@@ -110,3 +110,98 @@ if __name__ == '__main__':
     assert np.allclose(y.sum(axis=1), 1.0, atol=1e-5), "Softmax not normalised"
     print("\n3-channel model smoke test PASSED ✓")
     print(f"Total params: {model.count_params():,}")
+
+
+def build_seizure_cnn_v2(n_channels: int = 18, window_samples: int = 512):
+    """
+    Standard 1-channel v2 architecture for Phase 2a/2c/2e.
+
+    Input:  (18, 512, 1)
+    Output: softmax probability over [non-seizure, seizure]
+
+    Restored in Phase 2e after Phase 2d STFT refactor removed it.
+    Architecture identical to 3ch variant except input channels=1.
+    Total params: ~137,000
+    """
+    inp = keras.Input(shape=(n_channels, window_samples, 1), name='eeg_input')
+
+    x = keras.layers.Rescaling(scale=1.0 / 255.0, name='rescaling')(inp)
+
+    # Block 1: spatio-temporal
+    x = keras.layers.Conv2D(
+        32, (9, 7), strides=(1, 4),
+        padding='valid', use_bias=False, name='conv1'
+    )(x)
+    x = keras.layers.MaxPooling2D((1, 2), padding='valid', name='pool1')(x)
+    x = keras.layers.ReLU(max_value=6.0, name='relu1')(x)
+
+    # Block 2
+    x = keras.layers.Conv2D(
+        64, (3, 3),
+        padding='same', use_bias=False, name='conv2'
+    )(x)
+    x = keras.layers.MaxPooling2D((2, 2), padding='same', name='pool2')(x)
+    x = keras.layers.ReLU(max_value=6.0, name='relu2')(x)
+
+    # Block 3
+    x = keras.layers.Conv2D(
+        32, (3, 3),
+        padding='same', use_bias=False, name='conv3'
+    )(x)
+    x = keras.layers.MaxPooling2D((2, 2), padding='same', name='pool3')(x)
+    x = keras.layers.ReLU(max_value=6.0, name='relu3')(x)
+
+    # Head
+    x   = keras.layers.Flatten(name='flatten')(x)
+    x   = keras.layers.Dense(64, use_bias=False, name='dense1')(x)
+    x   = keras.layers.ReLU(max_value=6.0, name='relu_dense')(x)
+    out = keras.layers.Dense(2, activation='softmax', name='output')(x)
+
+    return keras.Model(inputs=inp, outputs=out, name='seizure_cnn_v2')
+
+
+def build_patient_adapted_model(base_model, freeze_until='relu3'):
+    """
+    Clone base_model and freeze layers up to and including freeze_until.
+    Used for patient-specific fine-tuning from a pre-trained base.
+
+    Args:
+        base_model   : trained keras.Model (e.g. best_ann_chb01_v2.h5)
+        freeze_until : name of last frozen layer (default 'relu3' —
+                       freezes conv extractor, trains Dense head only)
+
+    Returns:
+        adapted model ready for fine-tuning with compile() + fit()
+
+    Frozen / trainable parameter counts (freeze_until='relu3'):
+        Frozen    : conv1+pool1+relu1+conv2+pool2+relu2+conv3+pool3+relu3
+                    = ~38,880 params
+        Trainable : flatten+dense1+relu_dense+output
+                    = ~98,434 params
+
+    Usage:
+        base = keras.models.load_model('results/best_ann_chb01_v2.h5')
+        adapted = build_patient_adapted_model(base, freeze_until='relu3')
+        adapted.compile(
+            optimizer=keras.optimizers.Adam(1e-4),
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']
+        )
+        adapted.fit(X_train, y_train, epochs=20, ...)
+    """
+    # Freeze all layers up to and including freeze_until
+    freeze = True
+    for layer in base_model.layers:
+        if freeze:
+            layer.trainable = False
+        if layer.name == freeze_until:
+            freeze = False  # unfreeze everything after this layer
+
+    frozen    = sum(1 for l in base_model.layers if not l.trainable)
+    trainable = sum(1 for l in base_model.layers if l.trainable)
+    print(f"Frozen layers    : {frozen}")
+    print(f"Trainable layers : {trainable}")
+    print(f"Frozen params    : {sum(l.count_params() for l in base_model.layers if not l.trainable):,}")
+    print(f"Trainable params : {sum(l.count_params() for l in base_model.layers if l.trainable):,}")
+
+    return base_model
