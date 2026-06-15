@@ -1,0 +1,40 @@
+{
+  "experiment": "cross_patient_inference_multi_model",
+  "model": "best_ann_multi_v2.h5",
+  "model_trained_on": [
+    "chb01",
+    "chb02",
+    "chb05"
+  ],
+  "gap_tolerance_s": 60.0,
+  "detection_fraction": 0.3,
+  "min_sustained_windows": 3,
+  "chb03": {
+    "window_sensitivity": 0.1557,
+    "window_specificity": 0.9985,
+    "tp": 26,
+    "fp": 29,
+    "tn": 19042,
+    "fn": 141,
+    "event_sensitivity": 0.0,
+    "events_detected": 0,
+    "events_total": 3,
+    "fp_events_per_hour": 2.99,
+    "total_hours": 7.11,
+    "note": "All events missed \u2014 max_run<=5, frac_pos<=0.204. Amplitude phenotype mismatch hypothesis."
+  },
+  "chb10": {
+    "window_sensitivity": 0.4947,
+    "window_specificity": 0.9155,
+    "tp": 139,
+    "fp": 2259,
+    "tn": 24469,
+    "fn": 142,
+    "event_sensitivity": 0.5,
+    "events_detected": 2,
+    "events_total": 4,
+    "fp_events_per_hour": 9.06,
+    "total_hours": 7.5,
+    "note": "Events 2+3 detected confidently (frac_pos 0.82, 0.61). Events 1+4 missed (frac_pos 0.22, 0.15)."
+  }
+}
