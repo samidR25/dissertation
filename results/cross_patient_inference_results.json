@@ -6,9 +6,14 @@
     "chb02",
     "chb05"
   ],
-  "gap_tolerance_s": 60.0,
-  "detection_fraction": 0.3,
-  "min_sustained_windows": 3,
+  "evaluation_protocol": {
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "window_s": 2.0,
+    "overlap": 0.5,
+    "split": "chronological last 15% per patient"
+  },
   "chb03": {
     "window_sensitivity": 0.1557,
     "window_specificity": 0.9985,
@@ -19,9 +24,31 @@
     "event_sensitivity": 0.0,
     "events_detected": 0,
     "events_total": 3,
-    "fp_events_per_hour": 2.99,
-    "total_hours": 7.11,
-    "note": "All events missed \u2014 max_run<=5, frac_pos<=0.204. Amplitude phenotype mismatch hypothesis."
+    "fp_events": 16,
+    "fp_per_hour": 2.99,
+    "total_hours": 5.34,
+    "events": [
+      {
+        "windows": 48,
+        "frac_pos": 0.125,
+        "max_run": 2,
+        "detected": false
+      },
+      {
+        "windows": 65,
+        "frac_pos": 0.138,
+        "max_run": 2,
+        "detected": false
+      },
+      {
+        "windows": 54,
+        "frac_pos": 0.204,
+        "max_run": 5,
+        "detected": false
+      }
+    ],
+    "regime": "B",
+    "note": "Amplitude phenotype mismatch \u2014 all events sub-threshold. max_run<=5 across all events. Z-score intervention planned."
   },
   "chb10": {
     "window_sensitivity": 0.4947,
@@ -33,8 +60,36 @@
     "event_sensitivity": 0.5,
     "events_detected": 2,
     "events_total": 4,
-    "fp_events_per_hour": 9.06,
+    "fp_events": 68,
+    "fp_per_hour": 9.06,
     "total_hours": 7.5,
-    "note": "Events 2+3 detected confidently (frac_pos 0.82, 0.61). Events 1+4 missed (frac_pos 0.22, 0.15)."
+    "events": [
+      {
+        "windows": 59,
+        "frac_pos": 0.22,
+        "max_run": 4,
+        "detected": false
+      },
+      {
+        "windows": 77,
+        "frac_pos": 0.818,
+        "max_run": 35,
+        "detected": true
+      },
+      {
+        "windows": 90,
+        "frac_pos": 0.611,
+        "max_run": 23,
+        "detected": true
+      },
+      {
+        "windows": 55,
+        "frac_pos": 0.145,
+        "max_run": 4,
+        "detected": false
+      }
+    ],
+    "regime": "A",
+    "note": "Consistent generalisation \u2014 detected events show high confidence. Missed events near threshold (frac_pos 0.22, 0.15)."
   }
 }
