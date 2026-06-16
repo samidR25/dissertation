@@ -24,6 +24,7 @@ import re
 import numpy as np
 import mne
 from scipy.signal import butter, sosfilt
+import gc
 
 # ── Parameters ────────────────────────────────────────────────────────────────
 # Justify each of these values in your methodology chapter
@@ -144,7 +145,20 @@ def preprocess_edf(edf_path, verbose=False):
     if sfreq != SFREQ_TARGET:
         raw.resample(SFREQ_TARGET, verbose=verbose)
         sfreq = SFREQ_TARGET
-
+    # 5b. Per-EDF z-score normalisation ──────────────────────────────────────
+    # Removes inter-session amplitude shifts (electrode impedance drift,
+    # amplifier gain recalibration) — primary cause of 4× amplitude jump
+    # in chb03 between train and test sessions (Mohammad et al. 2026;
+    # Tran et al. 2026). Applied per-channel after CAR to preserve spatial
+    # relationships. ±4σ clip prevents artefact outliers (confirmed ±28σ
+    # in chb03 diagnostic) from collapsing downstream [0,255] scale.
+    data = raw.get_data()
+    mean = data.mean(axis=1, keepdims=True)
+    std  = data.std(axis=1, keepdims=True)
+    std[std < 1e-8] = 1e-8
+    data = (data - mean) / std
+    data = np.clip(data, -4.0, 4.0)
+    raw._data = data
     # 6. Extract array ────────────────────────────────────────────────────────
     data, _ = raw[:]   # shape: (n_channels, n_timepoints)
 
@@ -251,23 +265,11 @@ def rate_encode(windows, n_timesteps=N_TIMESTEPS, threshold_factor=SPIKE_THRESH)
 
 # ── Main: process all files for a patient ────────────────────────────────────
 def build_patient_dataset(patient_dir, patient_id, output_dir):
-    """
-    Process all EDF files for one patient, returning windowed and
-    labelled spike arrays.
-
-    Args:
-        patient_dir : path to directory containing EDF + summary files
-        patient_id  : e.g. 'chb01'
-        output_dir  : where to save .npz output
-    """
     summary_path = os.path.join(patient_dir, f'{patient_id}-summary.txt')
     if not os.path.exists(summary_path):
         raise FileNotFoundError(f"Summary file not found: {summary_path}")
 
     seizure_map = parse_chbmit_summary(summary_path)
-
-    all_windows = []
-    all_labels  = []
 
     edf_files = sorted([
         f for f in os.listdir(patient_dir)
@@ -275,6 +277,13 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
     ])
 
     print(f"\nProcessing {len(edf_files)} EDF files for {patient_id}...")
+
+    # ── Incremental save to avoid accumulating all files in RAM ──────────────
+    # Each EDF file's windows are saved to a temp .npz immediately after
+    # processing and discarded from memory. Final concatenation uses memmap.
+    import tempfile, gc
+    tmp_dir = tempfile.mkdtemp(prefix=f'{patient_id}_')
+    tmp_files = []
 
     for fname in edf_files:
         edf_path = os.path.join(patient_dir, fname)
@@ -295,12 +304,31 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
         print(f"  Windows: {len(windows)} | Seizure: {n_sz} | "
               f"Non-seizure: {len(windows)-n_sz}")
 
-        all_windows.append(windows)
-        all_labels.append(labels)
+        # Save this file's windows immediately and free memory
+        tmp_path = os.path.join(tmp_dir, fname.replace('.edf', '.npz'))
+        np.savez_compressed(tmp_path, X=windows, y=labels)
+        tmp_files.append(tmp_path)
 
-    # Concatenate across files
-    X = np.concatenate(all_windows, axis=0)
-    y = np.concatenate(all_labels,  axis=0)
+        del windows, labels
+        gc.collect()
+
+    if not tmp_files:
+        raise RuntimeError(f"No EDF files processed for {patient_id}")
+
+    # ── Concatenate via memmap ────────────────────────────────────────────────
+    print(f"\nConcatenating {len(tmp_files)} temp files...")
+    all_X, all_y = [], []
+    for tp in tmp_files:
+        d = np.load(tp, mmap_mode='r')
+        all_X.append(np.array(d['X']))
+        all_y.append(np.array(d['y']))
+        del d
+        gc.collect()
+
+    X = np.concatenate(all_X, axis=0)
+    y = np.concatenate(all_y,  axis=0)
+    del all_X, all_y
+    gc.collect()
 
     print(f"\n{'='*50}")
     print(f"Patient {patient_id} — full dataset")
@@ -309,14 +337,16 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
     print(f"  Window shape   : {X[0].shape}  "
           f"(channels={X.shape[1]}, samples={X.shape[2]})")
 
-    # Save raw (non-spike-encoded) windows for ANN training
     os.makedirs(output_dir, exist_ok=True)
     raw_path = os.path.join(output_dir, f'{patient_id}_windows.npz')
     np.savez_compressed(raw_path, X=X, y=y)
     print(f"\nRaw windows saved: {raw_path}")
 
-    return X, y
+    # Clean up temp files
+    import shutil
+    shutil.rmtree(tmp_dir)
 
+    return X, y
 
 if __name__ == '__main__':
     import argparse

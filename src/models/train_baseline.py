@@ -206,7 +206,16 @@ parser.add_argument('--epochs',           type=int, default=100)
 parser.add_argument('--batch',            type=int, default=32)
 parser.add_argument('--stft',             action='store_true',
                     help='Use 3-channel STFT dataset (Phase 2d)')
+parser.add_argument('--seed', type=int, default=42,
+                    help='Random seed for reproducibility (default: 42)')
 args = parser.parse_args()
+# ── Deterministic seed ────────────────────────────────────────────────────────
+import random, tensorflow as tf
+random.seed(args.seed)
+np.random.seed(args.seed)
+tf.random.set_seed(args.seed)
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
+print(f"Random seed: {args.seed}")
 
 # Validation
 if args.gradual_unfreeze and args.finetune_from is None:
