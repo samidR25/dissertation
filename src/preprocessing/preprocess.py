@@ -152,13 +152,13 @@ def preprocess_edf(edf_path, verbose=False):
     # Tran et al. 2026). Applied per-channel after CAR to preserve spatial
     # relationships. ±4σ clip prevents artefact outliers (confirmed ±28σ
     # in chb03 diagnostic) from collapsing downstream [0,255] scale.
-    data = raw.get_data()
-    mean = data.mean(axis=1, keepdims=True)
-    std  = data.std(axis=1, keepdims=True)
-    std[std < 1e-8] = 1e-8
-    data = (data - mean) / std
-    data = np.clip(data, -4.0, 4.0)
-    raw._data = data
+   # data = raw.get_data()
+   # mean = data.mean(axis=1, keepdims=True)
+   # std  = data.std(axis=1, keepdims=True)
+   # std[std < 1e-8] = 1e-8
+   # data = (data - mean) / std
+   # data = np.clip(data, -4.0, 4.0)
+   # raw._data = data
     # 6. Extract array ────────────────────────────────────────────────────────
     data, _ = raw[:]   # shape: (n_channels, n_timepoints)
 
