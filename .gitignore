@@ -3,3 +3,5 @@ results/*chb10s123*
 results/*chb03ft2*
 results/*multi_from_chb10s123*
 results/retrain_chb15_s123_log.txt
+data/
+__pycache__/
