@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb09ft_s2024",
+  "patient": "chb09",
+  "eval_patient": "chb09",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 36648,
+  "n_seizure": 63,
+  "sensitivity": 0.9048,
+  "specificity": 0.9877,
+  "fpr_per_hour": 22.09,
+  "f1": 0.2004
+}

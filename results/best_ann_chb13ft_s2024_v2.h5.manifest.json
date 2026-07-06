@@ -1,0 +1,17 @@
+{
+  "patient_tag": "chb13",
+  "seed": 2024,
+  "scaler_path": "data/processed/chb13_scaler.json",
+  "scaler": {
+    "scale": 79704.60407020012,
+    "shift": 119.05699123626569,
+    "X_min": -0.0014937279047444463,
+    "X_max": 0.001705585396848619
+  },
+  "finetune_from": "multi",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb13_v2.h5"
+}

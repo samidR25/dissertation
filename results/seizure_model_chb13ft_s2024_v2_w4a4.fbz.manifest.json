@@ -1,0 +1,18 @@
+{
+  "source_checkpoint": "results/best_ann_chb13ft_s2024_v2.h5",
+  "scaler": {
+    "scale": 79704.60407020012,
+    "shift": 119.05699123626569,
+    "X_min": -0.0014937279047444463,
+    "X_max": 0.001705585396848619
+  },
+  "base_tag": "chb13ft_s2024",
+  "calibration_patient": "chb13",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "seed": 1,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/seizure_model_chb13ft_s2024_v2_w4a4.fbz"
+}

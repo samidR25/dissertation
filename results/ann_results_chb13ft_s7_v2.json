@@ -1,0 +1,25 @@
+{
+  "patient": "chb13",
+  "model_version": 2,
+  "train": {
+    "n": 1854,
+    "n_seizure": 927,
+    "sensitivity": 1.0,
+    "specificity": 0.9978,
+    "fpr_per_hour": 3.88
+  },
+  "val": {
+    "n": 256,
+    "n_seizure": 23,
+    "sensitivity": 0.8261,
+    "specificity": 0.9957,
+    "fpr_per_hour": 7.73
+  },
+  "test": {
+    "n": 17816,
+    "n_seizure": 294,
+    "sensitivity": 0.5442,
+    "specificity": 0.9708,
+    "fpr_per_hour": 52.6
+  }
+}

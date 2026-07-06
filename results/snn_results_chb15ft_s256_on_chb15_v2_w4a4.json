@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb15ft_s256",
+  "patient": "chb15",
+  "eval_patient": "chb15",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 21600,
+  "n_seizure": 592,
+  "sensitivity": 0.402,
+  "specificity": 0.9834,
+  "fpr_per_hour": 29.82,
+  "f1": 0.4041
+}

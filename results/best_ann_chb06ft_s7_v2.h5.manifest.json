@@ -1,0 +1,17 @@
+{
+  "patient_tag": "chb06",
+  "seed": 7,
+  "scaler_path": "data/processed/chb06_scaler.json",
+  "scaler": {
+    "scale": 43912.0406322933,
+    "shift": 151.51637312429938,
+    "X_min": -0.0034504516515880823,
+    "X_max": 0.0023566116578876972
+  },
+  "finetune_from": "multi",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb06_v2.h5"
+}

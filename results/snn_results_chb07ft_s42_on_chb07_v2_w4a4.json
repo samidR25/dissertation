@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb07ft_s42",
+  "patient": "chb07",
+  "eval_patient": "chb07",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 36206,
+  "n_seizure": 144,
+  "sensitivity": 0.8125,
+  "specificity": 0.9903,
+  "fpr_per_hour": 17.37,
+  "f1": 0.3842
+}

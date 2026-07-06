@@ -1,0 +1,17 @@
+{
+  "patient_tag": "chb20",
+  "seed": 256,
+  "scaler_path": "data/processed/chb20_scaler.json",
+  "scaler": {
+    "scale": 83806.57736795413,
+    "shift": 120.1050278934609,
+    "X_min": -0.0014331217389553785,
+    "X_max": 0.0016095988685265183
+  },
+  "finetune_from": "multi",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb20_v2.h5"
+}

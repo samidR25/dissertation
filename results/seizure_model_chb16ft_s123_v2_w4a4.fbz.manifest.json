@@ -1,0 +1,18 @@
+{
+  "source_checkpoint": "results/best_ann_chb16_v2.h5",
+  "scaler": {
+    "scale": 82362.28932998936,
+    "shift": 126.52852029133187,
+    "X_min": -0.001536243362352252,
+    "X_max": 0.001559833763167262
+  },
+  "base_tag": "chb16",
+  "calibration_patient": "chb16",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "seed": 42,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/seizure_model_chb16_v2_w4a4.fbz"
+}
