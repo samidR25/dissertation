@@ -1,0 +1,25 @@
+{
+  "patient": "chb13_longctx_w512",
+  "model_version": 2,
+  "train": {
+    "n": 1854,
+    "n_seizure": 927,
+    "sensitivity": 1.0,
+    "specificity": 0.9989,
+    "fpr_per_hour": 1.94
+  },
+  "val": {
+    "n": 256,
+    "n_seizure": 23,
+    "sensitivity": 1.0,
+    "specificity": 0.9871,
+    "fpr_per_hour": 23.18
+  },
+  "test": {
+    "n": 17816,
+    "n_seizure": 294,
+    "sensitivity": 0.3333,
+    "specificity": 0.9872,
+    "fpr_per_hour": 23.01
+  }
+}

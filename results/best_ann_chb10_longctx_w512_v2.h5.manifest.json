@@ -1,0 +1,19 @@
+{
+  "patient_tag": "chb10_longctx_w512",
+  "seed": 123,
+  "scaler_path": "data/processed/chb10_scaler_longctx_w512.json",
+  "scaler": {
+    "ch0_min": -0.002332559321075678,
+    "ch0_max": 0.002357300603762269,
+    "ch1_min": 0.004349797032773495,
+    "ch1_max": 0.6181496977806091,
+    "ch2_min": 0.46006232500076294,
+    "ch2_max": 43.37354278564453
+  },
+  "finetune_from": "multi_longctx_w512",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb10_longctx_w512_v2.h5"
+}

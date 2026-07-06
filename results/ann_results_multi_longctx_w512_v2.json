@@ -1,0 +1,18 @@
+{
+  "patient": "multi_longctx_w512",
+  "model_version": 2,
+  "train": {
+    "n": 18990,
+    "n_seizure": 9495,
+    "sensitivity": 1.0,
+    "specificity": 0.9999,
+    "fpr_per_hour": 0.19
+  },
+  "val": {
+    "n": 2612,
+    "n_seizure": 237,
+    "sensitivity": 0.9831,
+    "specificity": 0.9979,
+    "fpr_per_hour": 3.79
+  }
+}

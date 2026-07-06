@@ -1,0 +1,35 @@
+{
+  "fbz_path": "results/seizure_model_chb13_longctx_w512_v2_w4a4.fbz",
+  "eval_patient": "chb13",
+  "spike_threshold": 0.5,
+  "scaler_source": "data/processed/chb13_scaler_longctx_w512.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.0142,
+    "n_predicted_blocks": 9,
+    "largest_block_fraction": 0.0091,
+    "pass": true,
+    "reasons": []
+  },
+  "window_level": {
+    "sensitivity": 0.2075,
+    "specificity": 0.989,
+    "fpr_per_hour": 19.72
+  },
+  "event_level": {
+    "event_sensitivity": 0.3333333333333333,
+    "n_events": 6,
+    "n_detected": 2,
+    "false_positives": 3,
+    "fp_per_hour": 0.60619667714414,
+    "total_hours": 4.948888888888889,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [
+      22.0,
+      17.0
+    ],
+    "mean_latency_s": 19.5,
+    "n_undetected": 4
+  }
+}

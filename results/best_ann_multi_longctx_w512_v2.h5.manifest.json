@@ -1,0 +1,12 @@
+{
+  "patient_tag": "multi_longctx_w512",
+  "seed": 123,
+  "scaler_path": "data/processed/multi_longctx_w512_scaler.json",
+  "scaler": null,
+  "finetune_from": null,
+  "gradual_unfreeze": false,
+  "freeze_depth": null,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_multi_longctx_w512_v2.h5"
+}
