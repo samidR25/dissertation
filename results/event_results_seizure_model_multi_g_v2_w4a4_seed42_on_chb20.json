@@ -1,0 +1,38 @@
+{
+  "fbz_path": "results/seizure_model_multi_g_v2_w4a4_seed42.fbz",
+  "eval_patient": "chb20",
+  "spike_threshold": 0.5,
+  "conformal": null,
+  "scaler_source": "data/processed/chb20_scaler_g.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.8881,
+    "n_predicted_blocks": 1,
+    "largest_block_fraction": 1.0,
+    "pass": false,
+    "reasons": [
+      "window specificity 0.1120 < 0.9",
+      "largest predicted block covers 100.0% of the recording (> 90%)"
+    ]
+  },
+  "window_level": {
+    "sensitivity": 0.925,
+    "specificity": 0.112,
+    "fpr_per_hour": 1598.45
+  },
+  "event_level": {
+    "event_sensitivity": 1.0,
+    "n_events": 1,
+    "n_detected": 1,
+    "false_positives": 0,
+    "fp_per_hour": 0.0,
+    "total_hours": 4.139166666666667,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [
+      0.0
+    ],
+    "mean_latency_s": 0.0,
+    "n_undetected": 0
+  }
+}

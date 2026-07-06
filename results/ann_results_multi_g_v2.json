@@ -1,0 +1,18 @@
+{
+  "patient": "multi_g",
+  "model_version": 2,
+  "train": {
+    "n": 18990,
+    "n_seizure": 9495,
+    "sensitivity": 0.9774,
+    "specificity": 0.9984,
+    "fpr_per_hour": 2.84
+  },
+  "val": {
+    "n": 2612,
+    "n_seizure": 237,
+    "sensitivity": 0.8734,
+    "specificity": 0.9941,
+    "fpr_per_hour": 10.61
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "patient_tag": "multi_g",
+  "seed": 2024,
+  "scaler_path": "data/processed/multi_scaler_g.json",
+  "scaler": {
+    "feature_type": "g_relpower",
+    "channels": [
+      "rel_delta_power",
+      "rel_beta_power",
+      "delta_beta_ratio"
+    ],
+    "delta_band_hz": [
+      0.5,
+      4.0
+    ],
+    "beta_band_hz": [
+      13.0,
+      30.0
+    ],
+    "rms_win_samples": 64,
+    "eps": 1.0,
+    "ratio_cap": 20.0,
+    "ratio_cap_max": 20.0,
+    "per_channel_minmax": {
+      "ch0_min": 0.000766425218898803,
+      "ch0_max": 1.003422498703003,
+      "ch1_min": 1.1670186950141215e-06,
+      "ch1_max": 0.28742364048957825,
+      "ch2_min": 0.04943625256419182,
+      "ch2_max": 20.0,
+      "ratio_cap": 20.0
+    }
+  },
+  "finetune_from": null,
+  "gradual_unfreeze": false,
+  "freeze_depth": null,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_multi_g_v2.h5"
+}

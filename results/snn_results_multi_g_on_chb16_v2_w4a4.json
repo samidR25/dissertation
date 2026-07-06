@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_g",
+  "patient": "multi",
+  "eval_patient": "chb16",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 1024,
+  "eval_set": "test",
+  "n_eval": 10258,
+  "n_seizure": 42,
+  "sensitivity": 0.6905,
+  "specificity": 0.9014,
+  "fpr_per_hour": 177.43,
+  "f1": 0.0538
+}
