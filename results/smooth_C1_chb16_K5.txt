@@ -1,0 +1,35 @@
+Model        : results/seizure_model_multi_v2_w4a4.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] NOTE: chb16 was never one of results/seizure_model_multi_v2_w4a4.fbz's pool constituents — no pool-relative scaler to check against. This is the normal cross-patient generalisation case (e.g. chb10), not the chb06 dual-scaler bug (which only applies to patients that played BOTH roles). Proceeding without a scaler check.
+
+Running SNN simulator inference...
+
+[Item 5] Applying causal 5-window moving average to the spike-margin ratio before thresholding (smoothing window 5s at this project's 1.0s window stride).
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.4094%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_on_chb16.json

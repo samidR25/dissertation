@@ -1,0 +1,33 @@
+Model        : results/seizure_model_multi_bnrecal_chb15_v2_w4a4.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] Scaler consistency verified against results/seizure_model_multi_bnrecal_chb15_v2_w4a4.fbz's manifest ✓
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.8649
+  Specificity : 0.8146
+  FPR / hour  : 333.64
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 7/7
+  False positive events : 22
+  FP events / hour  : 3.6666666666666665
+  Total hours       : 6.00
+  Detection latency (s) : [0.0, 1.0, 0.0, 4.0, 6.0, 3.0, 0.0]
+  Mean latency (s)      : 2.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.204
+  Predicted blocks         : 28
+  Largest block fraction   : 0.1994
+  Verdict                  : FAIL
+    - window specificity 0.8146 < 0.9
+
+Saved: results/event_results_seizure_model_multi_bnrecal_chb15_v2_w4a4_on_chb15.json

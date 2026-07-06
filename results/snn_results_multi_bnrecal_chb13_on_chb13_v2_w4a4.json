@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_bnrecal_chb13",
+  "patient": "chb13",
+  "eval_patient": "chb13",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 17816,
+  "n_seizure": 294,
+  "sensitivity": 0.1837,
+  "specificity": 0.8795,
+  "fpr_per_hour": 216.96,
+  "f1": 0.0439
+}

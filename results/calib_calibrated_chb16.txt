@@ -1,0 +1,36 @@
+Model        : results/seizure_model_multi_v2_w4a4.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Gate 0b scaler override]
+  Eval data was built under : data/processed/chb16_scaler.json (scale=82362.29, shift=126.53)
+  Re-scaling under          : data/processed/chb16_calib120s_scaler.json (scale=252489.35, shift=94.91)
+
+[Gate 1b] NOTE: chb16 was never one of results/seizure_model_multi_v2_w4a4.fbz's pool constituents — no pool-relative scaler to check against. This is the normal cross-patient generalisation case (e.g. chb10), not the chb06 dual-scaler bug (which only applies to patients that played BOTH roles). Proceeding without a scaler check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.5476
+  Specificity : 0.5255
+  FPR / hour  : 854.19
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.8
+  Events detected   : 4/5
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 2.85
+  Detection latency (s) : [3.0, 5.0, 0.0, 4.0]
+  Mean latency (s)      : 3.0
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.4748
+  Predicted blocks         : 1
+  Largest block fraction   : 0.9984
+  Verdict                  : FAIL
+    - window specificity 0.5255 < 0.9
+    - largest predicted block covers 99.8% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_on_chb16.json
