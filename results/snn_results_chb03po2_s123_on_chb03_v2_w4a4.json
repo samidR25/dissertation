@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb03po2_s123",
+  "patient": "chb03",
+  "eval_patient": "chb03",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 512,
+  "eval_set": "test",
+  "n_eval": 19238,
+  "n_seizure": 167,
+  "sensitivity": 0.1916,
+  "specificity": 0.9979,
+  "fpr_per_hour": 3.78,
+  "f1": 0.2678
+}

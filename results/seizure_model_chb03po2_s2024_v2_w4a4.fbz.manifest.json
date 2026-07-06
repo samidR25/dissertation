@@ -1,0 +1,17 @@
+{
+  "source_checkpoint": "results/best_ann_chb03po2_s2024_v2.h5",
+  "scaler": {
+    "scale": 54219.7873212679,
+    "shift": 127.68839468157127,
+    "X_min": -0.0023550146725028753,
+    "X_max": 0.0023480653762817383
+  },
+  "base_tag": "chb03po2_s2024",
+  "calibration_patient": "chb03",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 512,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/seizure_model_chb03po2_s2024_v2_w4a4.fbz"
+}

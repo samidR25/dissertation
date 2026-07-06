@@ -1,0 +1,32 @@
+{
+  "fbz_path": "results/seizure_model_chb03po2_s123_v2_w4a4.fbz",
+  "eval_patient": "chb03",
+  "spike_threshold": 0.5,
+  "scaler_source": "data/processed/chb03_scaler.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.0037,
+    "n_predicted_blocks": 22,
+    "largest_block_fraction": 0.0077,
+    "pass": true,
+    "reasons": []
+  },
+  "window_level": {
+    "sensitivity": 0.1916,
+    "specificity": 0.9979,
+    "fpr_per_hour": 3.78
+  },
+  "event_level": {
+    "event_sensitivity": 0.0,
+    "n_events": 3,
+    "n_detected": 0,
+    "false_positives": 4,
+    "fp_per_hour": 0.7485185570225595,
+    "total_hours": 5.3438888888888885,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [],
+    "mean_latency_s": null,
+    "n_undetected": 3
+  }
+}

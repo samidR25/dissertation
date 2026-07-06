@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb10po_s42",
+  "patient": "chb10",
+  "eval_patient": "chb10",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 512,
+  "eval_set": "test",
+  "n_eval": 27009,
+  "n_seizure": 281,
+  "sensitivity": 0.6833,
+  "specificity": 0.9999,
+  "fpr_per_hour": 0.27,
+  "f1": 0.805
+}
