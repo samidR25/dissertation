@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi",
+  "patient": "multi",
+  "eval_patient": "chb20",
+  "variant": "coral_lambda0.01",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 1024,
+  "eval_set": "test",
+  "n_eval": 14901,
+  "n_seizure": 40,
+  "sensitivity": 0.25,
+  "specificity": 0.9356,
+  "fpr_per_hour": 115.91,
+  "f1": 0.0199
+}

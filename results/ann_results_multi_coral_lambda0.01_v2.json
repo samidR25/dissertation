@@ -1,0 +1,18 @@
+{
+  "patient": "multi_coral_lambda0.01",
+  "model_version": 2,
+  "train": {
+    "n": 18990,
+    "n_seizure": 9495,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "fpr_per_hour": 0.0
+  },
+  "val": {
+    "n": 2612,
+    "n_seizure": 237,
+    "sensitivity": 0.9747,
+    "specificity": 0.9992,
+    "fpr_per_hour": 1.52
+  }
+}
