@@ -1,0 +1,15 @@
+{
+  "base_tag": "multi",
+  "patient": "multi",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "train (no test seizures)",
+  "n_eval": 500,
+  "n_seizure": 272,
+  "sensitivity": 0.0478,
+  "specificity": 1.0,
+  "fpr_per_hour": 0.0,
+  "f1": 0.0912
+}

@@ -1,0 +1,17 @@
+{
+  "base_tag": "chb13",
+  "patient": "chb13",
+  "eval_patient": "chb13",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 17816,
+  "n_seizure": 294,
+  "sensitivity": 0.5408,
+  "specificity": 0.9714,
+  "fpr_per_hour": 51.57,
+  "f1": 0.333
+}

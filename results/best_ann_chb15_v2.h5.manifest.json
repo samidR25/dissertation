@@ -1,0 +1,17 @@
+{
+  "patient_tag": "chb15",
+  "seed": 123,
+  "scaler_path": "data/processed/chb15_scaler.json",
+  "scaler": {
+    "scale": 63437.32576352353,
+    "shift": 137.43443101734528,
+    "X_min": -0.0021664600353688,
+    "X_max": 0.001853255438618362
+  },
+  "finetune_from": "multi",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb15_v2.h5"
+}

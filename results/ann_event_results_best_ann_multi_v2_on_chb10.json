@@ -1,0 +1,34 @@
+{
+  "ckpt_path": "results/best_ann_multi_v2.h5",
+  "eval_patient": "chb10",
+  "scaler_source": "data/processed/chb10_scaler.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.0097,
+    "n_predicted_blocks": 63,
+    "largest_block_fraction": 0.0074,
+    "pass": true,
+    "reasons": []
+  },
+  "window_level": {
+    "sensitivity": 0.4911,
+    "specificity": 0.9953,
+    "fpr_per_hour": 8.42
+  },
+  "event_level": {
+    "event_sensitivity": 0.5,
+    "n_events": 4,
+    "n_detected": 2,
+    "false_positives": 21,
+    "fp_per_hour": 2.7990669776741086,
+    "total_hours": 7.5025,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [
+      7.0,
+      20.0
+    ],
+    "mean_latency_s": 13.5,
+    "n_undetected": 2
+  }
+}

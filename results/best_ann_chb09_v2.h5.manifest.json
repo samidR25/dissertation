@@ -1,0 +1,17 @@
+{
+  "patient_tag": "chb09",
+  "seed": 123,
+  "scaler_path": "data/processed/chb09_scaler.json",
+  "scaler": {
+    "scale": 52299.211139142295,
+    "shift": 131.22532126732355,
+    "X_min": -0.0025091262068599463,
+    "X_max": 0.0023666643537580967
+  },
+  "finetune_from": "multi",
+  "gradual_unfreeze": false,
+  "freeze_depth": 2,
+  "model_version": 2,
+  "git_commit": "901b7687dfe6e20437596acb9e4febe7ec392c6c",
+  "artifact": "results/best_ann_chb09_v2.h5"
+}
