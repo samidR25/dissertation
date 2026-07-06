@@ -1,0 +1,1956 @@
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb03
+Eval set     : 19238 windows, 167 seizure windows
+
+[Scaler] using data/processed/chb03_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb03.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb03
+Eval set     : 19238 windows, 167 seizure windows
+
+[Scaler] using data/processed/chb03_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb03.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb03
+Eval set     : 19238 windows, 167 seizure windows
+
+[Scaler] using data/processed/chb03_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb03.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb03
+Eval set     : 19238 windows, 167 seizure windows
+
+[Scaler] using data/processed/chb03_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb03.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb03
+Eval set     : 19238 windows, 167 seizure windows
+
+[Scaler] using data/processed/chb03_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb03.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb06
+Eval set     : 36035 windows, 30 seizure windows
+
+[Scaler] using data/processed/chb06_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/2
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 10.01
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.0833%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb06.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb06
+Eval set     : 36035 windows, 30 seizure windows
+
+[Scaler] using data/processed/chb06_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.05
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/2
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 10.01
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 1
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0028% is less than 10% of the true seizure-window rate (0.0833%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb06.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb06
+Eval set     : 36035 windows, 30 seizure windows
+
+[Scaler] using data/processed/chb06_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9874
+  FPR / hour  : 22.75
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/2
+  False positive events : 75
+  FP events / hour  : 7.492715415568197
+  Total hours       : 10.01
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0126
+  Predicted blocks         : 154
+  Largest block fraction   : 0.0229
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb06.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb06
+Eval set     : 36035 windows, 30 seizure windows
+
+[Scaler] using data/processed/chb06_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/2
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 10.01
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.0833%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb06.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb06
+Eval set     : 36035 windows, 30 seizure windows
+
+[Scaler] using data/processed/chb06_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 1.0000
+  FPR / hour  : 0.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/2
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 10.01
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0
+  Predicted blocks         : 0
+  Largest block fraction   : 0.0
+  Verdict                  : FAIL
+    - positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.0833%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb06.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb07
+Eval set     : 36206 windows, 144 seizure windows
+
+[Scaler] using data/processed/chb07_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3333
+  Specificity : 0.9998
+  FPR / hour  : 0.45
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 10.06
+  Detection latency (s) : [26.0]
+  Mean latency (s)      : 26.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0016
+  Predicted blocks         : 8
+  Largest block fraction   : 0.0027
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb07.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb07
+Eval set     : 36206 windows, 144 seizure windows
+
+[Scaler] using data/processed/chb07_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.4514
+  Specificity : 0.9990
+  FPR / hour  : 1.75
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 5
+  FP events / hour  : 0.4971551676517704
+  Total hours       : 10.06
+  Detection latency (s) : [20.0]
+  Mean latency (s)      : 20.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0028
+  Predicted blocks         : 22
+  Largest block fraction   : 0.0055
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb07.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb07
+Eval set     : 36206 windows, 144 seizure windows
+
+[Scaler] using data/processed/chb07_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3889
+  Specificity : 0.9986
+  FPR / hour  : 2.55
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 6
+  FP events / hour  : 0.5965862011821245
+  Total hours       : 10.06
+  Detection latency (s) : [20.0]
+  Mean latency (s)      : 20.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.003
+  Predicted blocks         : 36
+  Largest block fraction   : 0.0028
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb07.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb07
+Eval set     : 36206 windows, 144 seizure windows
+
+[Scaler] using data/processed/chb07_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.4236
+  Specificity : 0.9945
+  FPR / hour  : 9.83
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 23
+  FP events / hour  : 2.2869137711981438
+  Total hours       : 10.06
+  Detection latency (s) : [20.0]
+  Mean latency (s)      : 20.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0071
+  Predicted blocks         : 61
+  Largest block fraction   : 0.0067
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb07.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb07
+Eval set     : 36206 windows, 144 seizure windows
+
+[Scaler] using data/processed/chb07_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.4653
+  Specificity : 0.9996
+  FPR / hour  : 0.75
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 1
+  FP events / hour  : 0.09943103353035408
+  Total hours       : 10.06
+  Detection latency (s) : [22.0]
+  Mean latency (s)      : 22.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0023
+  Predicted blocks         : 13
+  Largest block fraction   : 0.0027
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb07.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb09
+Eval set     : 36648 windows, 63 seizure windows
+
+[Scaler] using data/processed/chb09_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.7460
+  Specificity : 0.9961
+  FPR / hour  : 6.99
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 21
+  FP events / hour  : 2.06286836935167
+  Total hours       : 10.18
+  Detection latency (s) : [4.0]
+  Mean latency (s)      : 4.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0052
+  Predicted blocks         : 55
+  Largest block fraction   : 0.0048
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb09.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb09
+Eval set     : 36648 windows, 63 seizure windows
+
+[Scaler] using data/processed/chb09_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.8095
+  Specificity : 0.9962
+  FPR / hour  : 6.89
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 23
+  FP events / hour  : 2.2593320235756384
+  Total hours       : 10.18
+  Detection latency (s) : [4.0]
+  Mean latency (s)      : 4.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0052
+  Predicted blocks         : 68
+  Largest block fraction   : 0.005
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb09.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb09
+Eval set     : 36648 windows, 63 seizure windows
+
+[Scaler] using data/processed/chb09_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.7619
+  Specificity : 0.9972
+  FPR / hour  : 5.02
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 17
+  FP events / hour  : 1.6699410609037328
+  Total hours       : 10.18
+  Detection latency (s) : [4.0]
+  Mean latency (s)      : 4.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0041
+  Predicted blocks         : 55
+  Largest block fraction   : 0.0052
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb09.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb09
+Eval set     : 36648 windows, 63 seizure windows
+
+[Scaler] using data/processed/chb09_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.7937
+  Specificity : 0.9907
+  FPR / hour  : 16.73
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 63
+  FP events / hour  : 6.18860510805501
+  Total hours       : 10.18
+  Detection latency (s) : [4.0]
+  Mean latency (s)      : 4.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0106
+  Predicted blocks         : 115
+  Largest block fraction   : 0.0069
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb09.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb09
+Eval set     : 36648 windows, 63 seizure windows
+
+[Scaler] using data/processed/chb09_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.7619
+  Specificity : 0.9947
+  FPR / hour  : 9.59
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 1/1
+  False positive events : 34
+  FP events / hour  : 3.3398821218074657
+  Total hours       : 10.18
+  Detection latency (s) : [4.0]
+  Mean latency (s)      : 4.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0066
+  Predicted blocks         : 68
+  Largest block fraction   : 0.0048
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb09.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb10
+Eval set     : 27009 windows, 281 seizure windows
+
+[Scaler] using data/processed/chb10_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.2954
+  Specificity : 0.9984
+  FPR / hour  : 2.83
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.5
+  Events detected   : 2/4
+  False positive events : 5
+  FP events / hour  : 0.6664445184938353
+  Total hours       : 7.50
+  Detection latency (s) : [14.0, 26.0]
+  Mean latency (s)      : 20.0
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0046
+  Predicted blocks         : 26
+  Largest block fraction   : 0.0047
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb10.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb10
+Eval set     : 27009 windows, 281 seizure windows
+
+[Scaler] using data/processed/chb10_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3310
+  Specificity : 0.9986
+  FPR / hour  : 2.56
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.5
+  Events detected   : 2/4
+  False positive events : 3
+  FP events / hour  : 0.39986671109630123
+  Total hours       : 7.50
+  Detection latency (s) : [16.0, 25.0]
+  Mean latency (s)      : 20.5
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0049
+  Predicted blocks         : 35
+  Largest block fraction   : 0.0031
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb10.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb10
+Eval set     : 27009 windows, 281 seizure windows
+
+[Scaler] using data/processed/chb10_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3879
+  Specificity : 0.9999
+  FPR / hour  : 0.27
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.5
+  Events detected   : 2/4
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 7.50
+  Detection latency (s) : [15.0, 18.0]
+  Mean latency (s)      : 16.5
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0042
+  Predicted blocks         : 8
+  Largest block fraction   : 0.0029
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb10.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb10
+Eval set     : 27009 windows, 281 seizure windows
+
+[Scaler] using data/processed/chb10_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.2954
+  Specificity : 0.9990
+  FPR / hour  : 1.89
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.5
+  Events detected   : 2/4
+  False positive events : 2
+  FP events / hour  : 0.2665778073975341
+  Total hours       : 7.50
+  Detection latency (s) : [18.0, 25.0]
+  Mean latency (s)      : 21.5
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0041
+  Predicted blocks         : 25
+  Largest block fraction   : 0.0031
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb10.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb10
+Eval set     : 27009 windows, 281 seizure windows
+
+[Scaler] using data/processed/chb10_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3950
+  Specificity : 0.9963
+  FPR / hour  : 6.73
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.5
+  Events detected   : 2/4
+  False positive events : 18
+  FP events / hour  : 2.3992002665778074
+  Total hours       : 7.50
+  Detection latency (s) : [15.0, 20.0]
+  Mean latency (s)      : 17.5
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0078
+  Predicted blocks         : 57
+  Largest block fraction   : 0.0043
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb10.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb11
+Eval set     : 18784 windows, 809 seizure windows
+
+[Scaler] using data/processed/chb11_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.7108
+  Specificity : 0.2721
+  FPR / hour  : 1310.22
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.22
+  Detection latency (s) : [0.0, 3.0, 0.0]
+  Mean latency (s)      : 1.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.7272
+  Predicted blocks         : 1
+  Largest block fraction   : 1.0
+  Verdict                  : FAIL
+    - window specificity 0.2721 < 0.9
+    - largest predicted block covers 100.0% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb11.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb11
+Eval set     : 18784 windows, 809 seizure windows
+
+[Scaler] using data/processed/chb11_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.8702
+  Specificity : 0.8922
+  FPR / hour  : 194.07
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 35
+  FP events / hour  : 6.707836456558773
+  Total hours       : 5.22
+  Detection latency (s) : [0.0, 10.0, 4.0]
+  Mean latency (s)      : 4.67
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1407
+  Predicted blocks         : 47
+  Largest block fraction   : 0.1309
+  Verdict                  : FAIL
+    - window specificity 0.8922 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb11.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb11
+Eval set     : 18784 windows, 809 seizure windows
+
+[Scaler] using data/processed/chb11_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.6143
+  Specificity : 0.6208
+  FPR / hour  : 682.55
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.22
+  Detection latency (s) : [0.0, 3.0, 5.0]
+  Mean latency (s)      : 2.67
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.3893
+  Predicted blocks         : 3
+  Largest block fraction   : 0.6166
+  Verdict                  : FAIL
+    - window specificity 0.6208 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb11.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb11
+Eval set     : 18784 windows, 809 seizure windows
+
+[Scaler] using data/processed/chb11_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.4314
+  Specificity : 0.5741
+  FPR / hour  : 766.56
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.22
+  Detection latency (s) : [0.0, 12.0, 5.0]
+  Mean latency (s)      : 5.67
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.4261
+  Predicted blocks         : 2
+  Largest block fraction   : 0.9511
+  Verdict                  : FAIL
+    - window specificity 0.5741 < 0.9
+    - largest predicted block covers 95.1% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb11.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb11
+Eval set     : 18784 windows, 809 seizure windows
+
+[Scaler] using data/processed/chb11_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.6663
+  Specificity : 0.4180
+  FPR / hour  : 1047.55
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 5.22
+  Detection latency (s) : [0.0, 3.0, 0.0]
+  Mean latency (s)      : 1.0
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.5856
+  Predicted blocks         : 1
+  Largest block fraction   : 1.0
+  Verdict                  : FAIL
+    - window specificity 0.4180 < 0.9
+    - largest predicted block covers 100.0% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb11.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb13
+Eval set     : 17816 windows, 294 seizure windows
+
+[Scaler] using data/processed/chb13_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.3333
+  Specificity : 0.5167
+  FPR / hour  : 870.00
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.3333333333333333
+  Events detected   : 2/6
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 4.95
+  Detection latency (s) : [14.0, 3.0]
+  Mean latency (s)      : 8.5
+  Undetected events     : 4
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.4809
+  Predicted blocks         : 1
+  Largest block fraction   : 0.9995
+  Verdict                  : FAIL
+    - window specificity 0.5167 < 0.9
+    - largest predicted block covers 99.9% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb13.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb13
+Eval set     : 17816 windows, 294 seizure windows
+
+[Scaler] using data/processed/chb13_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.1905
+  Specificity : 0.8499
+  FPR / hour  : 270.17
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.16666666666666666
+  Events detected   : 1/6
+  False positive events : 6
+  FP events / hour  : 1.21239335428828
+  Total hours       : 4.95
+  Detection latency (s) : [2.0]
+  Mean latency (s)      : 2.0
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1508
+  Predicted blocks         : 7
+  Largest block fraction   : 0.4129
+  Verdict                  : FAIL
+    - window specificity 0.8499 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb13.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb13
+Eval set     : 17816 windows, 294 seizure windows
+
+[Scaler] using data/processed/chb13_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.1293
+  Specificity : 0.8581
+  FPR / hour  : 255.48
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.16666666666666666
+  Events detected   : 1/6
+  False positive events : 5
+  FP events / hour  : 1.0103277952402334
+  Total hours       : 4.95
+  Detection latency (s) : [16.0]
+  Mean latency (s)      : 16.0
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1417
+  Predicted blocks         : 8
+  Largest block fraction   : 0.3296
+  Verdict                  : FAIL
+    - window specificity 0.8581 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb13.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb13
+Eval set     : 17816 windows, 294 seizure windows
+
+[Scaler] using data/processed/chb13_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0918
+  Specificity : 0.8532
+  FPR / hour  : 264.32
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/6
+  False positive events : 10
+  FP events / hour  : 2.020655590480467
+  Total hours       : 4.95
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 6
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1459
+  Predicted blocks         : 14
+  Largest block fraction   : 0.3298
+  Verdict                  : FAIL
+    - window specificity 0.8532 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb13.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb13
+Eval set     : 17816 windows, 294 seizure windows
+
+[Scaler] using data/processed/chb13_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.4014
+  Specificity : 0.6085
+  FPR / hour  : 704.61
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.8333333333333334
+  Events detected   : 5/6
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 4.95
+  Detection latency (s) : [0.0, 25.0, 13.0, 2.0, 9.0]
+  Mean latency (s)      : 9.8
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.3916
+  Predicted blocks         : 1
+  Largest block fraction   : 0.9997
+  Verdict                  : FAIL
+    - window specificity 0.6085 < 0.9
+    - largest predicted block covers 100.0% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb13.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0101
+  Specificity : 0.9984
+  FPR / hour  : 2.83
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/7
+  False positive events : 2
+  FP events / hour  : 0.3333333333333333
+  Total hours       : 6.00
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 7
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0018
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0023
+  Verdict                  : FAIL
+    - positive-window fraction 0.1806% is less than 10% of the true seizure-window rate (2.7407%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb15.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0034
+  Specificity : 0.9988
+  FPR / hour  : 2.14
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/7
+  False positive events : 2
+  FP events / hour  : 0.3333333333333333
+  Total hours       : 6.00
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 7
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0013
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0011
+  Verdict                  : FAIL
+    - positive-window fraction 0.1250% is less than 10% of the true seizure-window rate (2.7407%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb15.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0321
+  Specificity : 0.9949
+  FPR / hour  : 9.17
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/7
+  False positive events : 2
+  FP events / hour  : 0.3333333333333333
+  Total hours       : 6.00
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 7
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0058
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0051
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb15.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0017
+  Specificity : 0.9986
+  FPR / hour  : 2.57
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/7
+  False positive events : 2
+  FP events / hour  : 0.3333333333333333
+  Total hours       : 6.00
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 7
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0014
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0036
+  Verdict                  : FAIL
+    - positive-window fraction 0.1435% is less than 10% of the true seizure-window rate (2.7407%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb15.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb15
+Eval set     : 21600 windows, 592 seizure windows
+
+[Scaler] using data/processed/chb15_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0017
+  Specificity : 0.9989
+  FPR / hour  : 2.06
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/7
+  False positive events : 2
+  FP events / hour  : 0.3333333333333333
+  Total hours       : 6.00
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 7
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0012
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0036
+  Verdict                  : FAIL
+    - positive-window fraction 0.1157% is less than 10% of the true seizure-window rate (2.7407%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb15.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9992
+  FPR / hour  : 1.41
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0008
+  Predicted blocks         : 7
+  Largest block fraction   : 0.0002
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb16.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9974
+  FPR / hour  : 4.76
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 5
+  FP events / hour  : 1.7547280171573405
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0026
+  Predicted blocks         : 12
+  Largest block fraction   : 0.0047
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb16.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9989
+  FPR / hour  : 1.94
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 2
+  FP events / hour  : 0.7018912068629363
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0011
+  Predicted blocks         : 9
+  Largest block fraction   : 0.0009
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb16.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9985
+  FPR / hour  : 2.64
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 3
+  FP events / hour  : 1.0528368102944043
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0015
+  Predicted blocks         : 7
+  Largest block fraction   : 0.0034
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb16.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb16
+Eval set     : 10258 windows, 42 seizure windows
+
+[Scaler] using data/processed/chb16_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0000
+  Specificity : 0.9992
+  FPR / hour  : 1.41
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/5
+  False positive events : 1
+  FP events / hour  : 0.35094560343146813
+  Total hours       : 2.85
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 5
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0008
+  Predicted blocks         : 4
+  Largest block fraction   : 0.0015
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb16.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb18
+Eval set     : 19238 windows, 241 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0207
+  Specificity : 0.9677
+  FPR / hour  : 58.08
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/4
+  False positive events : 14
+  FP events / hour  : 2.6198149495789584
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 4
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0321
+  Predicted blocks         : 27
+  Largest block fraction   : 0.038
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb18.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb18
+Eval set     : 19238 windows, 241 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0747
+  Specificity : 0.9481
+  FPR / hour  : 93.33
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/4
+  False positive events : 25
+  FP events / hour  : 4.6782409813909975
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 4
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0521
+  Predicted blocks         : 47
+  Largest block fraction   : 0.0419
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb18.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb18
+Eval set     : 19238 windows, 241 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.2490
+  Specificity : 0.9589
+  FPR / hour  : 73.91
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.25
+  Events detected   : 1/4
+  False positive events : 19
+  FP events / hour  : 3.555463145857158
+  Total hours       : 5.34
+  Detection latency (s) : [7.0]
+  Mean latency (s)      : 7.0
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0437
+  Predicted blocks         : 34
+  Largest block fraction   : 0.0386
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb18.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb18
+Eval set     : 19238 windows, 241 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0581
+  Specificity : 0.9513
+  FPR / hour  : 87.74
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/4
+  False positive events : 21
+  FP events / hour  : 3.9297224243684377
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 4
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0489
+  Predicted blocks         : 37
+  Largest block fraction   : 0.0383
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb18.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb18
+Eval set     : 19238 windows, 241 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0539
+  Specificity : 0.9792
+  FPR / hour  : 37.43
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/4
+  False positive events : 19
+  FP events / hour  : 3.555463145857158
+  Total hours       : 5.34
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 4
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0212
+  Predicted blocks         : 38
+  Largest block fraction   : 0.0372
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb18.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb19
+Eval set     : 16158 windows, 239 seizure windows
+
+[Scaler] using data/processed/chb19_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.2678
+  Specificity : 0.4216
+  FPR / hour  : 1041.17
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.3333333333333333
+  Events detected   : 1/3
+  False positive events : 1
+  FP events / hour  : 0.2227998514667657
+  Total hours       : 4.49
+  Detection latency (s) : [0.0]
+  Mean latency (s)      : 0.0
+  Undetected events     : 2
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.5738
+  Predicted blocks         : 2
+  Largest block fraction   : 0.9914
+  Verdict                  : FAIL
+    - window specificity 0.4216 < 0.9
+    - largest predicted block covers 99.1% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb19.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb19
+Eval set     : 16158 windows, 239 seizure windows
+
+[Scaler] using data/processed/chb19_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0879
+  Specificity : 0.9990
+  FPR / hour  : 1.81
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 1
+  FP events / hour  : 0.2227998514667657
+  Total hours       : 4.49
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0023
+  Predicted blocks         : 13
+  Largest block fraction   : 0.0044
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb19.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb19
+Eval set     : 16158 windows, 239 seizure windows
+
+[Scaler] using data/processed/chb19_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0460
+  Specificity : 0.9712
+  FPR / hour  : 51.79
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 32
+  FP events / hour  : 7.1295952469365025
+  Total hours       : 4.49
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.029
+  Predicted blocks         : 60
+  Largest block fraction   : 0.0607
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb19.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb19
+Eval set     : 16158 windows, 239 seizure windows
+
+[Scaler] using data/processed/chb19_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0251
+  Specificity : 0.9998
+  FPR / hour  : 0.34
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 4.49
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 3
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0006
+  Predicted blocks         : 3
+  Largest block fraction   : 0.0037
+  Verdict                  : FAIL
+    - positive-window fraction 0.0557% is less than 10% of the true seizure-window rate (1.4791%) — likely under-firing collapse (model gone non-responsive), not genuine high specificity.
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb19.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb19
+Eval set     : 16158 windows, 239 seizure windows
+
+[Scaler] using data/processed/chb19_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.5063
+  Specificity : 0.1917
+  FPR / hour  : 1454.90
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 3/3
+  False positive events : 0
+  FP events / hour  : 0.0
+  Total hours       : 4.49
+  Detection latency (s) : [2.0, 3.0, 0.0]
+  Mean latency (s)      : 1.67
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.8038
+  Predicted blocks         : 1
+  Largest block fraction   : 0.9999
+  Verdict                  : FAIL
+    - window specificity 0.1917 < 0.9
+    - largest predicted block covers 100.0% of the recording (> 90%)
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb19.json
+Model        : results/seizure_model_multi_v2_w4a4_seed42.fbz
+Eval patient : chb20
+Eval set     : 14901 windows, 40 seizure windows
+
+[Scaler] using data/processed/chb20_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed42.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.2000
+  Specificity : 0.7171
+  FPR / hour  : 509.20
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/1
+  False positive events : 7
+  FP events / hour  : 1.6911616670022145
+  Total hours       : 4.14
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.2827
+  Predicted blocks         : 9
+  Largest block fraction   : 0.5519
+  Verdict                  : FAIL
+    - window specificity 0.7171 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed42_on_chb20.json
+Model        : results/seizure_model_multi_v2_w4a4_seed7.fbz
+Eval patient : chb20
+Eval set     : 14901 windows, 40 seizure windows
+
+[Scaler] using data/processed/chb20_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed7.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.0750
+  Specificity : 0.9228
+  FPR / hour  : 138.93
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/1
+  False positive events : 32
+  FP events / hour  : 7.731024763438694
+  Total hours       : 4.14
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0772
+  Predicted blocks         : 46
+  Largest block fraction   : 0.0713
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed7_on_chb20.json
+Model        : results/seizure_model_multi_v2_w4a4_seed123.fbz
+Eval patient : chb20
+Eval set     : 14901 windows, 40 seizure windows
+
+[Scaler] using data/processed/chb20_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed123.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.1000
+  Specificity : 0.9269
+  FPR / hour  : 131.54
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/1
+  False positive events : 44
+  FP events / hour  : 10.630159049728205
+  Total hours       : 4.14
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.0731
+  Predicted blocks         : 53
+  Largest block fraction   : 0.0718
+  Verdict                  : PASS
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed123_on_chb20.json
+Model        : results/seizure_model_multi_v2_w4a4_seed256.fbz
+Eval patient : chb20
+Eval set     : 14901 windows, 40 seizure windows
+
+[Scaler] using data/processed/chb20_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed256.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.1250
+  Specificity : 0.8816
+  FPR / hour  : 213.18
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/1
+  False positive events : 31
+  FP events / hour  : 7.489430239581235
+  Total hours       : 4.14
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1184
+  Predicted blocks         : 42
+  Largest block fraction   : 0.1519
+  Verdict                  : FAIL
+    - window specificity 0.8816 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed256_on_chb20.json
+Model        : results/seizure_model_multi_v2_w4a4_seed2024.fbz
+Eval patient : chb20
+Eval set     : 14901 windows, 40 seizure windows
+
+[Scaler] using data/processed/chb20_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] WARNING: no manifest for results/seizure_model_multi_v2_w4a4_seed2024.fbz — scaler consistency cannot be verified. Proceeding on the strength of --scaler-source alone. Regenerate this .fbz with the current convert_to_snn.py to get this check.
+
+Running SNN simulator inference...
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.1250
+  Specificity : 0.8443
+  FPR / hour  : 280.28
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 0.0
+  Events detected   : 0/1
+  False positive events : 16
+  FP events / hour  : 3.865512381719347
+  Total hours       : 4.14
+  Detection latency (s) : []
+  Mean latency (s)      : None
+  Undetected events     : 1
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.1556
+  Predicted blocks         : 20
+  Largest block fraction   : 0.2725
+  Verdict                  : FAIL
+    - window specificity 0.8443 < 0.9
+
+Saved: results/event_results_seizure_model_multi_v2_w4a4_seed2024_on_chb20.json
