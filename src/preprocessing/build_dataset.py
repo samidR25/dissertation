@@ -49,36 +49,49 @@ def chronological_split(X, y, train_frac=0.70, val_frac=0.15):
             X[val_end:],          y[val_end:])
 
 
-def apply_smote(X_train, y_train, random_state=42):
+def undersample_train(X_train, y_train, ratio=10, random_state=42):
     """
-    Undersample majority class then SMOTE minority to balance.
-    Full SMOTE on 100k+ windows exceeds WSL2 memory — undersample first
-    to a manageable ratio, then oversample seizure class to match.
+    Undersample majority (non-seizure) class to `ratio`:1 vs seizure count.
+    Returns the REAL, pre-SMOTE undersampled (X_sub, y_sub) — no synthetic data.
+    This is the array that must be split BEFORE any SMOTE call, ever.
     """
-    n, ch, t = X_train.shape
     seizure_idx    = np.where(y_train == 1)[0]
     nonseizure_idx = np.where(y_train == 0)[0]
     n_seizure = len(seizure_idx)
 
-    # Keep 10x non-seizure windows before SMOTE to manage memory
-    n_keep = min(len(nonseizure_idx), n_seizure * 10)
+    n_keep = min(len(nonseizure_idx), n_seizure * ratio)
     rng = np.random.default_rng(random_state)
     kept_idx = rng.choice(nonseizure_idx, size=n_keep, replace=False)
     combined_idx = np.sort(np.concatenate([seizure_idx, kept_idx]))
 
     X_sub = X_train[combined_idx]
     y_sub = y_train[combined_idx]
-    print(f"  Before SMOTE (after undersample): {y_sub.sum()} seizure, "
+    print(f"  Undersampled (real, pre-SMOTE): {y_sub.sum()} seizure, "
           f"{(y_sub==0).sum()} non-seizure")
+    return X_sub, y_sub
 
+
+def smote_oversample(X_sub, y_sub, random_state=42):
+    """
+    SMOTE-balance an already-undersampled REAL set. Does no splitting —
+    caller is responsible for ensuring X_sub/y_sub contain no cross-split
+    contamination before this is called.
+    """
+    n, ch, t = X_sub.shape
+    n_seiz = int(y_sub.sum())
     X_flat = X_sub.reshape(len(X_sub), -1)
-    sm = SMOTE(random_state=random_state, k_neighbors=5)
+    sm = SMOTE(random_state=random_state, k_neighbors=min(5, n_seiz - 1))
     X_res, y_res = sm.fit_resample(X_flat, y_sub)
     X_res = X_res.reshape(-1, ch, t)
     print(f"  After SMOTE:  {y_res.sum()} seizure, "
           f"{(y_res==0).sum()} non-seizure")
     return X_res, y_res
 
+
+def apply_smote(X_train, y_train, random_state=42):
+    """Back-compat wrapper: undersample then SMOTE in one call (original behaviour)."""
+    X_sub, y_sub = undersample_train(X_train, y_train, ratio=10, random_state=random_state)
+    return smote_oversample(X_sub, y_sub, random_state=random_state)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -93,14 +106,14 @@ if __name__ == '__main__':
     out = args.output_dir
     os.makedirs(out, exist_ok=True)
 
-    # ── Load raw windows ──────────────────────────────────────────────────────
-    windows_path = os.path.join(out, f'{pid}_windows.npz')
-    assert os.path.exists(windows_path), \
-        f"Raw windows not found: {windows_path}\n" \
+    X_path = os.path.join(out, f'{pid}_X.npy')
+    y_path = os.path.join(out, f'{pid}_y.npy')
+    assert os.path.exists(X_path) and os.path.exists(y_path), \
+        f"Raw windows not found: {X_path}\n" \
         f"Run first: python3 src/preprocessing/preprocess.py --patient {pid}"
 
-    data = np.load(windows_path)
-    X, y = data['X'], data['y']
+    X = np.load(X_path)
+    y = np.load(y_path)
     print(f"\nPatient: {pid}")
     print(f"Loaded: {X.shape}  |  {y.sum()} seizure windows  "
           f"({100*y.mean():.2f}%)")
@@ -114,11 +127,19 @@ if __name__ == '__main__':
     print(f"  Train : {X_train.shape}  seizures: {y_train.sum()}")
     print(f"  Val   : {X_val.shape}    seizures: {y_val.sum()}")
     print(f"  Test  : {X_test.shape}   seizures: {y_test.sum()}")
-
-    # ── SMOTE on training set only ────────────────────────────────────────────
-    print("\nApplying SMOTE to training set...")
-    X_train_bal, y_train_bal = apply_smote(X_train, y_train)
-
+# ── SMOTE on training set only ────────────────────────────────────────────
+    if y_train.sum() == 0:
+        print(f"\nWARNING: {pid} training split has ZERO seizure windows — "
+              "inverse of chb01/02/05's pattern. All seizures fall in val/test. "
+              "Skipping SMOTE (no minority class to balance). This patient "
+              "cannot be trained standalone, but the saved npz is still valid "
+              "for held-out evaluation (X_test).")
+        X_train_bal, y_train_bal   = X_train, y_train
+        X_train_real, y_train_real = X_train, y_train   # nothing to undersample
+    else:
+        print("\nApplying SMOTE to training set...")
+        X_train_real, y_train_real = undersample_train(X_train, y_train)
+        X_train_bal,  y_train_bal  = smote_oversample(X_train_real, y_train_real)
 # ── Input scaling: [0, 255] ───────────────────────────────────────────────
     # Scale parameters from X_train ONLY. Saved to JSON for reference.
     # The Rescaling layer in akida_cnn.py divides by 255 internally so the
@@ -140,17 +161,48 @@ if __name__ == '__main__':
 
     def scale_255(X):
         return np.clip(X.astype('float32') * scale + shift, 0.0, 255.0)
-
-    # ── Save ANN dataset ([0,255]) ────────────────────────────────────────────
+# ── Save ANN dataset ([0,255]) ────────────────────────────────────────────
     ann_path = os.path.join(out, f'{pid}_dataset_ann.npz')
+    if y_train.sum() == 0:
+        print(f"\nNOTE: {pid} has zero train-split seizures — skipping "
+              "X_train/y_train (and X_train_real/y_train_real) in the saved "
+              "npz entirely (unbalanced, unusable for training, and large "
+              "enough to risk OOM on WSL2). Held-out eval (X_test/X_val) is "
+              "unaffected.")
+        X_train_save = np.empty((0, *X_train_bal.shape[1:]), dtype='float32')
+        y_train_save = np.empty((0,), dtype=y_train_bal.dtype)
+        X_train_real_save = np.empty((0, *X_train_real.shape[1:]), dtype='float32')
+        y_train_real_save = np.empty((0,), dtype=y_train_real.dtype)
+    else:
+        X_train_save = scale_255(X_train_bal)
+        y_train_save = y_train_bal
+        X_train_real_save = scale_255(X_train_real)
+        y_train_real_save = y_train_real
     np.savez_compressed(
         ann_path,
-        X_train=scale_255(X_train_bal), y_train=y_train_bal,
+        X_train=X_train_save, y_train=y_train_save,
+        X_train_real=X_train_real_save, y_train_real=y_train_real_save,
         X_val=scale_255(X_val),         y_val=y_val,
-        X_test=scale_255(X_test),       y_test=y_test
-    )
+        X_test=scale_255(X_test),       y_test=y_test,)
     print(f"ANN dataset saved: {ann_path}")
-
+# ── Gate 1b: manifest sidecar for this dataset artifact ──────────────────
+    import sys as _sys
+    _sys.path.insert(0, '.')
+    from src.manifest import write_manifest
+    write_manifest(
+        ann_path,
+        patient=pid,
+        scaler_path=scaler_path,
+        scaler=scaler,
+        split_ratios=[args.train_frac, args.val_frac,
+                      round(1 - args.train_frac - args.val_frac, 4)],
+        split_counts={'train': int(len(X_train)), 'val': int(len(X_val)),
+                      'test': int(len(X_test))},
+        smote_applied=bool(y_train.sum() != 0),
+        smote_undersample_ratio=10,
+        zscore=False,
+    )
+    print(f"Manifest saved: {ann_path}.manifest.json")
     # ── Summary ───────────────────────────────────────────────────────────────
     print(f"\n{'='*55}")
     print(f"Dataset summary — {pid} (record in dissertation Table 1)")

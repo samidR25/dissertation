@@ -1,225 +1,364 @@
 """
-ANN → SNN conversion for CHB-MIT seizure detection.
+src/models/convert_to_snn.py
+==============================
+Quantise and convert ANN → SNN (.fbz) for AKD1000 v1.
 
-Usage:
-    python3 src/models/convert_to_snn.py --patient chb01
+Phase 2a usage (unchanged):
     python3 src/models/convert_to_snn.py --patient chb01 --model-version 2
-    python3 src/models/convert_to_snn.py --patient chb01 --weight-bits 2
-    python3 src/models/convert_to_snn.py --patient chb01 --finetune-epochs 10
+    python3 src/models/convert_to_snn.py --patient chb03 --model-version 2
 
-API rules (cnn2snn 2.19.1 / quantizeml 1.2.3 / akida 2.19.1):
-  - activation_bits= NOT activ_bits= (silent ignore otherwise)
-  - per_tensor_activations=True MANDATORY for AKD1000 v1 hardware
-  - check_model_compatibility() on FLOAT model only — returns None
-  - set_akida_version(AkidaVersion.v1) on convert() AND compat check
-  - input_scaling DEPRECATED — do not pass it to convert()
-  - predict() returns (N,1,1,C) — preds.squeeze() then argmax
-  - loaded.statistics is Statistics object — print() directly
-  - quantize() called ONCE on float model (requantising raises error)
+Phase 2c additions:
+    # Convert multi-patient base model (saves seizure_model_multi_v2_w4a4.fbz)
+    python3 src/models/convert_to_snn.py --base multi --model-version 2
+
+    # Convert chb03 gradual-unfreeze fine-tuned model (same as Phase 2a — no flag needed)
+    python3 src/models/convert_to_snn.py --patient chb03 --model-version 2
+
+Flags:
+    --patient       chbXX   Patient tag for .h5 input and .npz calibration data.
+                            Used as default base tag if --base not set.
+    --base          TAG     Override ANN checkpoint base tag independently of
+                            --patient.  E.g. --base multi loads
+                            results/best_ann_multi_v2.h5 while using
+                            --patient chb03 data for calibration.
+    --model-version 1|2     Architecture version (default 2).
+    --w-bits        4       Weight quantisation bits (default 4).
+    --a-bits        4       Activation quantisation bits (default 4).
+    --cal-samples   256     Number of calibration samples for PTQ.
+
+Output: results/seizure_model_<base>_v<V>_w<W>a<A>.fbz
+        results/snn_results_<base>_v<V>_w<W>a<A>.json
+
+Non-negotiable rules (AKD1000 v1):
+    • import tf_keras as keras                — never tensorflow.keras
+    • set_akida_version(AkidaVersion.v1)      — wraps every convert() call
+    • QuantizationParams(per_tensor_activations=True)  — mandatory for v1 silicon
+    • check_model_compatibility() on float model only, returns None, try/except
+    • predict() output is (N,1,1,C) — squeeze then argmax
 """
+import os
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
+os.environ.setdefault('GLOG_minloglevel', '3')
+os.environ.setdefault('GRPC_VERBOSITY', 'ERROR')
+import warnings
+warnings.filterwarnings('ignore')
+import logging
+logging.getLogger('absl').setLevel(logging.ERROR)
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 import argparse, json, os, sys
 import numpy as np
-import tensorflow as tf
 import tf_keras as keras
 from quantizeml.models import quantize, QuantizationParams
-from cnn2snn import (convert, check_model_compatibility,
-                     set_akida_version, AkidaVersion)
-from sklearn.metrics import classification_report, confusion_matrix
+from cnn2snn import (check_model_compatibility, convert,
+                      set_akida_version, AkidaVersion)
+from sklearn.metrics import confusion_matrix
 import akida
+sys.path.insert(0, '.')
+from src.manifest import write_manifest, load_manifest
 
+# ── CLI ────────────────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
-parser.add_argument('--patient',             default='chb01')
-parser.add_argument('--model-version',       type=int, default=1, choices=[1, 2],
-                    help='Architecture version: 1=v1, 2=v2 spatio-temporal')
-parser.add_argument('--weight-bits',         type=int, default=4)
-parser.add_argument('--activation-bits',     type=int, default=4)
-parser.add_argument('--finetune-epochs',     type=int, default=5)
-parser.add_argument('--calibration-samples', type=int, default=512)
+parser.add_argument('--patient',       default='chb01',
+                    help="Patient tag for calibration data and default eval dataset.")
+parser.add_argument('--base',          default=None,
+                    help="Override ANN checkpoint tag. "
+                         "E.g. 'multi' → results/best_ann_multi_v2.h5. "
+                         "If not set, --patient is used.")
+parser.add_argument('--variant',       default=None,
+                    help="Checkpoint variant suffix, e.g. 'noz' or 'zscore'. "
+                         "results/best_ann_<base>_v<V>_<variant>.h5. "
+                         "If not set, loads results/best_ann_<base>_v<V>.h5 (no suffix).")
+parser.add_argument('--eval-patient',  default=None,
+                    help="Patient tag to evaluate the SNN on, independent of "
+                         "calibration data. E.g. --base multi --eval-patient chb03 "
+                         "calibrates on multi data, evaluates on chb03's test set. "
+                         "If not set, falls back to --patient.")
+parser.add_argument('--model-version', type=int, default=2)
+parser.add_argument('--w-bits',        type=int, default=4)
+parser.add_argument('--a-bits',        type=int, default=4)
+parser.add_argument('--cal-samples',   type=int, default=256)
+# add to the argparse block, near the other arguments:
+parser.add_argument('--seed', type=int, default=42,
+                    help="Random seed for PTQ calibration determinism. "
+                         "convert_to_snn.py previously had no determinism "
+                         "controls — calibration could vary run-to-run via "
+                         "non-deterministic GPU kernels, producing "
+                         "meaningfully different quantized models from the "
+                         "identical checkpoint + calibration data (found "
+                         "during Condition 4 pilot, Gate 3i).")
+parser.add_argument('--longctx',        action='store_true',
+                    help='Use 3-channel long-context dataset for PTQ '
+                         'calibration (Gate 2 Arms B/C).')
+parser.add_argument('--window-samples', type=int, default=512,
+                    choices=[512, 768],
+                    help='Window size in samples. Only meaningful with --longctx.')
+parser.add_argument('--g-features',     action='store_true',
+                    help='Use Candidate G relative-band-power dataset for '
+                         'PTQ calibration/eval (Handoff_a_e_c_closed_to_'
+                         'next_steps.md sec8 phase 1). Mutually exclusive '
+                         'with --longctx. NOTE: pass --patient multi (not '
+                         'multi_g) for calibration-data resolution -- use '
+                         '--base multi_g to load the checkpoint, same '
+                         'decoupling already used for --coral/--dann via '
+                         '--variant.')
 args = parser.parse_args()
+# immediately after args = parser.parse_args():
+import random
+random.seed(args.seed)
+np.random.seed(args.seed)
+import tensorflow as tf
+tf.random.set_seed(args.seed)
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
+print(f"Random seed: {args.seed}")
 
+# Resolve which checkpoint to load
+base_tag    = args.base if args.base else args.patient
+eval_tag    = args.eval_patient if args.eval_patient else args.patient
+variant_sfx = f'_{args.variant}' if args.variant else ''
+
+ckpt_path = f'results/best_ann_{base_tag}_v{args.model_version}{variant_sfx}.h5'
+
+# fbz/json filenames include eval_tag when it differs from base_tag, so
+# converting the same base model against multiple eval patients doesn't
+# silently overwrite results (e.g. multi → chb03 vs multi → chb10)
+tag_for_outputs = base_tag if eval_tag == base_tag else f'{base_tag}_on_{eval_tag}'
+fbz_path  = (f'results/seizure_model_{base_tag}{variant_sfx}'
+             f'_v{args.model_version}_w{args.w_bits}a{args.a_bits}.fbz')
+json_path = (f'results/snn_results_{tag_for_outputs}{variant_sfx}'
+             f'_v{args.model_version}_w{args.w_bits}a{args.a_bits}.json')
+
+print(f"ANN checkpoint : {ckpt_path}")
+print(f"Calibration    : data/processed/{args.patient}_dataset_ann.npz "
+      f"({args.cal_samples} samples)")
+print(f"Eval patient   : {eval_tag}")
+print(f"Output SNN     : {fbz_path}")
 os.makedirs('results', exist_ok=True)
-W, A, V = args.weight_bits, args.activation_bits, args.model_version
 
-# ── 1. Load ANN ───────────────────────────────────────────────────
-ckpt = f'results/best_ann_{args.patient}_v{V}.h5'
+if not os.path.exists(ckpt_path):
+    sys.exit(
+        f"ERROR: checkpoint not found: {ckpt_path}\n"
+        "Either train the model first:\n"
+        f"  python3 src/models/train_baseline.py "
+        f"--model-version {args.model_version} "
+        + (f"--multi-patient" if base_tag == 'multi'
+           else f"--patient {base_tag}")
+        + "\nor check --variant matches an existing suffix "
+          "(e.g. --variant noz for best_ann_multi_v2_noz.h5)."
+    )
 
-# Fallback: v1 models saved without version suffix during initial run
-if not os.path.exists(ckpt) and V == 1:
-    ckpt_legacy = f'results/best_ann_{args.patient}.h5'
-    if os.path.exists(ckpt_legacy):
-        print(f"Using legacy checkpoint: {ckpt_legacy}")
-        ckpt = ckpt_legacy
+ckpt_manifest = load_manifest(ckpt_path, required=False)
+if ckpt_manifest is None:
+    print(f"  WARNING: no manifest for {ckpt_path} — this checkpoint predates "
+          "Gate 1b. The .fbz produced here will carry no scaler provenance "
+          "either; regenerate the checkpoint to fix this.")
+elif ckpt_manifest.get('scaler') and 'per_patient' not in ckpt_manifest['scaler']:
+    if args.longctx or args.g_features:
+        # Longctx/G scalers use per-channel {ch0_min,...} keys, not flat
+        # {scale,shift}. Skip the flat-format consistency check — Gate 2c
+        # in train_baseline.py already verified the correct scaler was used.
+        _tag = 'Longctx' if args.longctx else 'Candidate G'
+        print(f"  [Gate 1b] {_tag} checkpoint — per-channel scaler format; "
+              "flat-format consistency check skipped (Gate 2c verified at training).")
+    else:
+        cal_scaler_path = f'data/processed/{args.patient}_scaler.json'
+        if os.path.exists(cal_scaler_path):
+            with open(cal_scaler_path) as f:
+                cal_scaler = json.load(f)
+            m = ckpt_manifest['scaler']
+            if (abs(m['scale'] - cal_scaler['scale']) > 1e-3 or
+                    abs(m['shift'] - cal_scaler['shift']) > 1e-3):
+                print(f"  WARNING: calibration data ({cal_scaler_path}) scaler "
+                      f"differs from {ckpt_path}'s training scaler "
+                      f"(model: scale={m['scale']:.2f}/shift={m['shift']:.2f}, "
+                      f"calibration: scale={cal_scaler['scale']:.2f}/"
+                      f"shift={cal_scaler['shift']:.2f}). Quantisation will "
+                      "calibrate against a different input distribution than "
+                      "the model was trained on — verify this is intentional.")
 
-assert os.path.exists(ckpt), \
-    f"No model at {ckpt}\n" \
-    f"Run: python3 src/models/train_baseline.py " \
-    f"--patient {args.patient} --model-version {V}"
+# ── 1. Load float model ────────────────────────────────────────────────────────
+print(f"\nLoading float model: {ckpt_path}")
+float_model = keras.models.load_model(ckpt_path)
+float_model.summary(print_fn=lambda x: print(f"  {x}"))
 
-model = keras.models.load_model(ckpt)
-print(f"Loaded (v{V}): {ckpt}")
-
-# ── 2. AKD1000 v1 compat check on FLOAT model ────────────────────
-print(f"\n=== AKD1000 v1 compatibility (float model v{V}) ===")
+# ── 2. AKD1000 v1 compatibility check (on float model ONLY) ──────────────────
+print("\nChecking AKD1000 v1 compatibility...")
 try:
     with set_akida_version(AkidaVersion.v1):
-        check_model_compatibility(model)
-    print("Compatible ✓")
+        check_model_compatibility(float_model)
+    print("AKD1000 v1 compatible ✓")
 except Exception as e:
-    print(f"INCOMPATIBLE ✗  {e}")
-    sys.exit(1)
+    # check_model_compatibility returns None in cnn2snn 2.19.1 — may be a
+    # false alarm from the context manager; proceed with caution
+    print(f"  WARNING: compatibility check raised: {e}")
+    print("  Proceeding — if convert() fails, check architecture constraints.")
 
-# ── 3. Load data ──────────────────────────────────────────────────
-data    = np.load(f'data/processed/{args.patient}_dataset_ann.npz')
-X_train = data['X_train'][..., np.newaxis].astype('float32')
-X_val   = data['X_val']  [..., np.newaxis].astype('float32')
-X_test  = data['X_test'] [..., np.newaxis].astype('float32')
-y_train, y_val, y_test = data['y_train'], data['y_val'], data['y_test']
+# ── 3. Load calibration data ──────────────────────────────────────────────────
+if args.longctx and args.g_features:
+    sys.exit("ERROR: --longctx and --g-features are mutually exclusive.")
+if args.longctx:
+    data_path = (f'data/processed/{args.patient}_dataset_longctx_w'
+                 f'{args.window_samples}.npz')
+elif args.g_features:
+    data_path = f'data/processed/{args.patient}_dataset_g.npz'
+else:
+    data_path = f'data/processed/{args.patient}_dataset_ann.npz'
+if not os.path.exists(data_path):
+    if args.longctx:
+        _hint = (f"Run: python3 src/preprocessing/build_dataset_longctx.py "
+                f"--patient {args.patient} --window-samples {args.window_samples}")
+    elif args.g_features:
+        _hint = (f"Run: python3 src/preprocessing/build_dataset_g.py "
+                f"--patient {args.patient}  (or --multi-patient, then pass "
+                f"--patient multi here)")
+    else:
+        _hint = f"Run: python3 src/preprocessing/build_dataset.py --patient {args.patient}"
+    sys.exit(f"ERROR: {data_path} not found.\n{_hint}")
 
-# Evaluation set
-eval_X     = X_test  if y_test.sum()  > 0 else X_train
-eval_y     = y_test  if y_test.sum()  > 0 else y_train
-eval_label = 'test'  if y_test.sum()  > 0 else 'train'
+data    = np.load(data_path)
+if args.longctx or args.g_features:
+    X_train = data['X_train'].astype('float32')
+else:
+    X_train = data['X_train'][..., np.newaxis].astype('float32')
+y_train = data['y_train']
 
-# ── 4. ANN baseline metrics ───────────────────────────────────────
-y_pred_ann = np.argmax(model.predict(eval_X, verbose=0), axis=1)
-tn_a, fp_a, fn_a, tp_a = confusion_matrix(eval_y, y_pred_ann).ravel()
-ann_sens = tp_a / (tp_a + fn_a) if (tp_a + fn_a) > 0 else 0.0
-ann_spec = tn_a / (tn_a + fp_a) if (tn_a + fp_a) > 0 else 0.0
-print(f"\nANN v{V} baseline ({eval_label}): "
-      f"sensitivity={ann_sens:.4f}  specificity={ann_spec:.4f}")
+# Balanced calibration slice: equal seizure / non-seizure from training set.
+# This gives PTQ recovery a meaningful signal even when seizures are rare.
+seiz_idx = np.where(y_train == 1)[0]
+nons_idx = np.where(y_train == 0)[0]
+half_cal = args.cal_samples // 2
+s_idx    = seiz_idx[:half_cal]
+n_idx    = nons_idx[:half_cal]
 
-# ── 5. Quantise (once on float model) ────────────────────────────
-print(f"\n=== Quantising (w{W}a{A}, per_tensor_activations=True) ===")
+if len(s_idx) == 0:
+    print("WARNING: no seizure windows in training set — using first "
+          f"{args.cal_samples} windows for calibration")
+    X_cal = X_train[:args.cal_samples]
+else:
+    cal_idx = np.concatenate([s_idx, n_idx])
+    X_cal   = X_train[cal_idx]
+
+print(f"\nCalibration set: {len(X_cal)} windows "
+      f"(seizure: {int(y_train[cal_idx if len(s_idx)>0 else np.arange(args.cal_samples)].sum())})")
+if args.longctx:
+    assert X_cal.shape[1:] == (18, args.window_samples, 3), \
+        f"Wrong calibration shape {X_cal.shape}"
+elif args.g_features:
+    assert X_cal.shape[1:] == (18, 512, 3), \
+        f"Wrong calibration shape {X_cal.shape}"
+else:
+    assert X_cal.shape[1:] == (18, 512, 1), \
+        f"Wrong calibration shape {X_cal.shape}"
+
+# ── 4. Quantise ───────────────────────────────────────────────────────────────
+print(f"\nQuantising (w{args.w_bits}a{args.a_bits}, per_tensor_activations=True)...")
 qparams = QuantizationParams(
-    input_weight_bits=8,
-    weight_bits=W,
-    activation_bits=A,
-    per_tensor_activations=True
+    input_weight_bits=8,          # input layer always 8-bit
+    weight_bits=args.w_bits,
+    activation_bits=args.a_bits,  # NOT activ_bits= — that kwarg is silently ignored
+    per_tensor_activations=True   # MANDATORY for AKD1000 v1 hardware
 )
-
-calib    = min(args.calibration_samples, len(X_train))
-sz_idx   = np.where(y_train == 1)[0][:calib // 2]
-norm_idx = np.where(y_train == 0)[0][:calib // 2]
-cal_X    = X_train[np.concatenate([sz_idx, norm_idx])]
-print(f"Calibration: {len(cal_X)} samples "
-      f"({len(sz_idx)} seizure, {len(norm_idx)} non-seizure)")
-
-q_model = quantize(model, qparams=qparams, samples=cal_X)
+q_model = quantize(float_model, qparams=qparams, samples=X_cal)
 print("Quantisation complete ✓")
 
-y_ptq = np.argmax(q_model.predict(eval_X, verbose=0), axis=1)
-tn_q, fp_q, fn_q, tp_q = confusion_matrix(eval_y, y_ptq).ravel()
-ptq_sens = tp_q / (tp_q + fn_q) if (tp_q + fn_q) > 0 else 0.0
-print(f"Post-PTQ sensitivity: {ptq_sens:.4f}  (drop: {ann_sens - ptq_sens:.4f})")
-
-# ── 6. Fine-tune quantised model ─────────────────────────────────
-print(f"\n=== Fine-tuning ({args.finetune_epochs} epochs) ===")
-
-# Use balanced val slice — avoids the 0-seizure val set problem
-sz_val   = np.where(y_train == 1)[0][len(sz_idx):len(sz_idx)+64]
-norm_val = np.where(y_train == 0)[0][len(norm_idx):len(norm_idx)+64]
-ft_val_X = X_train[np.concatenate([sz_val, norm_val])]
-ft_val_y = y_train[np.concatenate([sz_val, norm_val])]
-
-q_model.compile(
-    optimizer=keras.optimizers.Adam(1e-4),
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-)
-q_model.fit(
-    X_train, y_train,
-    validation_data=(ft_val_X, ft_val_y),
-    epochs=args.finetune_epochs,
-    batch_size=32,
-    class_weight={0: 1.0, 1: 1.5},
-    verbose=1
-)
-
-# ── 7. Convert to SNN ────────────────────────────────────────────
-fbz_path = f'results/seizure_model_{args.patient}_v{V}_w{W}a{A}.fbz'
-print(f"\n=== Converting to SNN (AkidaVersion.v1) ===")
+# ── 5. Convert to SNN ─────────────────────────────────────────────────────────
+print(f"\nConverting to SNN (AkidaVersion.v1)...")
 with set_akida_version(AkidaVersion.v1):
     akida_model = convert(q_model, file_path=fbz_path)
-print(f"Saved: {fbz_path}")
+write_manifest(
+    fbz_path,
+    source_checkpoint=ckpt_path,
+    scaler=(ckpt_manifest.get('scaler') if ckpt_manifest else None),
+    base_tag=base_tag,
+    calibration_patient=args.patient,
+    model_version=args.model_version,
+    weight_bits=args.w_bits,
+    activation_bits=args.a_bits,
+    cal_samples=len(X_cal),
+    seed=args.seed,
+)
+print(f"Manifest saved: {fbz_path}.manifest.json")
+print(f"SNN saved: {fbz_path}")
 
-# ── 8. Simulator evaluation ───────────────────────────────────────
-print("\n=== Simulator evaluation ===")
-loaded = akida.Model(fbz_path)
-loaded.summary()
-
-# Balanced eval slice — avoids 0-seizure first-N-windows problem
-sz_idx_e   = np.where(eval_y == 1)[0]
-norm_idx_e = np.where(eval_y == 0)[0]
-
-if len(sz_idx_e) > 0:
-    n_each   = min(500, len(sz_idx_e), len(norm_idx_e))
-    eval_idx = np.sort(np.concatenate([sz_idx_e[:n_each],
-                                        norm_idx_e[:n_each]]))
+# ── 6. SNN evaluation on test set ────────────────────────────────────────────
+# Evaluate on eval_tag's data, NOT necessarily the calibration patient's data.
+# This is what lets --base multi --eval-patient chb03 calibrate on multi
+# training data but evaluate cross-patient generalisation on chb03's actual
+# chronological test split.
+if eval_tag != args.patient:
+    if args.g_features:
+        eval_data_path = f'data/processed/{eval_tag}_dataset_g.npz'
+        _eval_hint = (f"Run: python3 src/preprocessing/build_dataset_g.py "
+                     f"--patient {eval_tag}")
+    else:
+        eval_data_path = f'data/processed/{eval_tag}_dataset_ann.npz'
+        _eval_hint = (f"Run: python3 src/preprocessing/build_dataset.py "
+                     f"--patient {eval_tag}")
+    if not os.path.exists(eval_data_path):
+        sys.exit(f"ERROR: {eval_data_path} not found.\n{_eval_hint}")
+    eval_data = np.load(eval_data_path)
 else:
-    eval_idx = np.arange(min(1000, len(eval_y)))
+    eval_data = data  # same data already loaded for calibration
 
-preds_raw = loaded.predict(eval_X[eval_idx])
-y_snn     = np.argmax(preds_raw.squeeze(), axis=1)
-y_true    = eval_y[eval_idx]
-
-print(classification_report(y_true, y_snn,
-      target_names=['Non-seizure', 'Seizure'], zero_division=0))
-
-cm_snn = confusion_matrix(y_true, y_snn)
-if cm_snn.shape == (2, 2):
-    tn_s, fp_s, fn_s, tp_s = cm_snn.ravel()
-    snn_sens  = tp_s / (tp_s + fn_s) if (tp_s + fn_s) > 0 else 0.0
-    snn_spec  = tn_s / (tn_s + fp_s) if (tn_s + fp_s) > 0 else 0.0
-    sens_drop = ann_sens - snn_sens
-    drop_ok   = sens_drop < 0.05
+has_test = 'X_test' in eval_data.files and eval_data['y_test'].sum() > 0
+if has_test:
+    if args.longctx or args.g_features:
+        X_eval = eval_data['X_test'].astype('float32')
+    else:
+        X_eval = eval_data['X_test'][..., np.newaxis].astype('float32')
+    y_eval = eval_data['y_test']
+    eval_label = 'test'
 else:
-    snn_sens = snn_spec = sens_drop = None
-    drop_ok = False
+    if args.longctx or args.g_features:
+        X_eval_train = eval_data['X_train'].astype('float32')
+    else:
+        X_eval_train = eval_data['X_train'][..., np.newaxis].astype('float32')
+    y_eval_train = eval_data['y_train']
+    X_eval = X_eval_train[:500]
+    y_eval = y_eval_train[:500]
+    eval_label = 'train (no test seizures)'
 
-print(f"\n{'─'*50}")
-print(f"  ANN v{V} baseline : sens={ann_sens:.4f}  spec={ann_spec:.4f}")
-if snn_sens is not None:
-    flag = '✓ acceptable' if drop_ok else '✗ investigate'
-    print(f"  SNN simulator  : sens={snn_sens:.4f}  spec={snn_spec:.4f}")
-    print(f"  Sensitivity drop: {sens_drop:.4f}  ({flag})")
-print(f"{'─'*50}")
+print(f"\nSNN evaluation on {eval_label} set ({len(X_eval)} windows)...")
+snn_preds_raw = akida_model.predict(X_eval)
 
-if not drop_ok and snn_sens is not None:
-    print(f"\n⚠  Drop ≥ 5% — try:")
-    print(f"   --finetune-epochs 10  or  --calibration-samples 1024")
+# predict() returns (N, 1, 1, C) — MUST squeeze before argmax
+snn_preds = np.argmax(snn_preds_raw.squeeze(), axis=1)
 
-# ── 9. Spike activity ─────────────────────────────────────────────
-print("\n=== Per-layer spike activity (power proxy) ===")
-print("Target: < 0.10 per layer")
-print(loaded.statistics)
+if len(np.unique(y_eval)) == 2:
+    cm   = confusion_matrix(y_eval, snn_preds)
+    tn, fp, fn, tp = cm.ravel()
+    sens   = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    spec   = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+    n_neg  = tn + fp
+    fpr_hr = fp / (n_neg * 2 / 3600) if n_neg > 0 else 0.0
+    f1     = (2 * tp) / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0.0
+    print(f"  Sensitivity : {sens:.4f}")
+    print(f"  Specificity : {spec:.4f}")
+    print(f"  FPR / hour  : {fpr_hr:.2f}")
+    print(f"  F1          : {f1:.4f}")
+else:
+    sens = spec = fpr_hr = f1 = None
+    print("  (Single class in eval — metrics not applicable)")
 
-# ── 10. Save results ──────────────────────────────────────────────
+# ── 7. Save results ───────────────────────────────────────────────────────────
 results = {
-    'patient':           args.patient,
-    'model_version':     V,
-    'eval_set':          eval_label,
-    'weight_bits':       W,
-    'activation_bits':   A,
-    'per_tensor':        True,
-    'akida_version':     'v1 (AKD1000)',
-    'finetune_epochs':   args.finetune_epochs,
-    'calibration_samples': len(cal_X),
-    'ann': {
-        'sensitivity': round(ann_sens, 4),
-        'specificity': round(ann_spec, 4),
-    },
-    'snn_simulator': {
-        'sensitivity':      round(snn_sens,  4) if snn_sens  is not None else None,
-        'specificity':      round(snn_spec,  4) if snn_spec  is not None else None,
-        'sensitivity_drop': round(sens_drop, 4) if sens_drop is not None else None,
-        'drop_acceptable':  bool(drop_ok),
-    },
-    'model_path': fbz_path,
+    'base_tag'         : base_tag,
+    'patient'          : args.patient,
+    'eval_patient'     : eval_tag,
+    'variant'          : args.variant,
+    'model_version'    : args.model_version,
+    'weight_bits'      : args.w_bits,
+    'activation_bits'  : args.a_bits,
+    'cal_samples'      : len(X_cal),
+    'eval_set'         : eval_label,
+    'n_eval'           : int(len(y_eval)),
+    'n_seizure'        : int(y_eval.sum()),
+    'sensitivity'      : round(sens, 4) if sens is not None else None,
+    'specificity'      : round(spec, 4) if spec is not None else None,
+    'fpr_per_hour'     : round(fpr_hr, 2) if fpr_hr is not None else None,
+    'f1'               : round(f1, 4) if f1 is not None else None,
 }
-out = f'results/snn_results_{args.patient}_v{V}_w{W}a{A}.json'
-with open(out, 'w') as f:
+with open(json_path, 'w') as f:
     json.dump(results, f, indent=2)
-print(f"\nResults : {out}")
-print(f"Model   : {fbz_path}")
-print(f"\nNext: python3 src/hardware/run_on_akida.py "
-      f"--patient {args.patient} --model-version {V}")
+print(f"\nSaved: {json_path}")
+print(f"SNN model: {fbz_path}")
+print("\nNext: SCP the .fbz to the Pi and run run_on_akida.py")

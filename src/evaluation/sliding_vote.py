@@ -85,51 +85,11 @@ def group_into_events(y_true, step_s=1.0, gap_tolerance_s=60.0):
 
     return merged
 
-
 def event_level_metrics(
-    y_true,
-    y_pred,
-    window_s=2.0,
-    overlap=0.5,
-    detection_fraction=0.3,
-    min_sustained_windows=3,
-    gap_tolerance_s=60.0,
+    y_true, y_pred, window_s=2.0, overlap=0.5,
+    detection_fraction=0.3, min_sustained_windows=3, gap_tolerance_s=60.0,
 ):
-    """
-    Compute event-level sensitivity and false positive rate.
-
-    An event is DETECTED if:
-      (a) >= detection_fraction of its windows are predicted positive, AND
-      (b) at least min_sustained_windows consecutive positives exist within it.
-
-    Args:
-        y_true               : (N,) ground-truth binary labels
-        y_pred               : (N,) predicted binary labels
-        window_s             : window duration in seconds (default 2.0)
-        overlap              : fractional window overlap (default 0.5)
-        detection_fraction   : fraction of event windows that must be positive
-                               (default 0.3 — accommodates undetectable onset
-                               phase; empirically appropriate for chb10)
-        min_sustained_windows: minimum consecutive positive windows required
-                               (default 3 = ~3s at 1s step)
-        gap_tolerance_s      : seconds of sub-threshold signal tolerated within
-                               an event before it is considered terminated.
-                               Default 60.0s — ILAE clinical cluster tolerance,
-                               empirically validated June 2026:
-                               gap=10s → 636 FP events (84.77/hr) on chb10
-                               gap=60s → 68 FP events (9.06/hr) on chb10
-                               sensitivity unchanged at 0.50 across both.
-
-    Returns:
-        dict with keys:
-            event_sensitivity : float or None (None if no events in y_true)
-            n_events          : int
-            n_detected        : int
-            false_positives   : int
-            fp_per_hour       : float
-            total_hours       : float
-    """
-    step_s = window_s * (1.0 - overlap)  # 1.0s for 2s/50% config
+    step_s = window_s * (1.0 - overlap)
     total_hours = (len(y_true) * step_s) / 3600.0
 
     true_events = group_into_events(y_true, step_s, gap_tolerance_s)
@@ -139,22 +99,30 @@ def event_level_metrics(
             "event_sensitivity": None,
             "n_events": 0,
             "n_detected": 0,
-            "false_positives": _count_false_positives(
-                y_pred, y_true, step_s, gap_tolerance_s
-            ),
+            "false_positives": _count_false_positives(y_pred, y_true, step_s, gap_tolerance_s, min_sustained_windows),
             "fp_per_hour": None,
             "total_hours": total_hours,
+            "latencies_s": [],
+            "mean_latency_s": None,
+            "n_undetected": 0,
         }
 
     n_detected = 0
+    n_undetected = 0
+    latencies_s = []
     for ev_start, ev_end in true_events:
         event_preds = y_pred[ev_start:ev_end]
         frac_positive = event_preds.mean()
         max_run = _max_consecutive(event_preds)
-        if frac_positive >= detection_fraction and max_run >= min_sustained_windows:
+        detected = frac_positive >= detection_fraction and max_run >= min_sustained_windows
+        if detected:
             n_detected += 1
+            onset_idx = _first_sustained_run_start(event_preds, min_sustained_windows)
+            latencies_s.append(round(onset_idx * step_s, 2))
+        else:
+            n_undetected += 1
 
-    fp = _count_false_positives(y_pred, y_true, step_s, gap_tolerance_s)
+    fp = _count_false_positives(y_pred, y_true, step_s, gap_tolerance_s, min_sustained_windows)
 
     return {
         "event_sensitivity": n_detected / len(true_events),
@@ -163,8 +131,55 @@ def event_level_metrics(
         "false_positives": fp,
         "fp_per_hour": fp / total_hours if total_hours > 0 else None,
         "total_hours": total_hours,
+        "latencies_s": latencies_s,
+        "mean_latency_s": round(float(np.mean(latencies_s)), 2) if latencies_s else None,
+        "n_undetected": n_undetected,
     }
 
+def collapse_diagnostic(y_pred, window_specificity, y_true=None, step_s=1.0,
+                         gap_tolerance_s=60.0,
+                         spec_floor=0.9, block_frac_ceiling=0.9,
+                         underfire_ratio_floor=0.1):
+    """
+    ... (existing docstring) ...
+    NEW: also FAILs if positive_window_fraction falls below
+    underfire_ratio_floor × the true seizure-window rate — catches a model
+    that's gone non-responsive post-quantisation, the mirror-image failure
+    to the over-firing case the original two checks were built for.
+    """
+    n = len(y_pred)
+    pred_blocks = group_into_events(y_pred, step_s, gap_tolerance_s)
+    pos_frac = float(np.mean(y_pred)) if n > 0 else 0.0
+    largest_block_frac = (
+        max((end - start) for start, end in pred_blocks) / n
+        if pred_blocks and n > 0 else 0.0
+    )
+
+    reasons = []
+    if window_specificity is not None and window_specificity < spec_floor:
+        reasons.append(f"window specificity {window_specificity:.4f} < {spec_floor}")
+    if largest_block_frac > block_frac_ceiling:
+        reasons.append(
+            f"largest predicted block covers {100*largest_block_frac:.1f}% "
+            f"of the recording (> {100*block_frac_ceiling:.0f}%)"
+        )
+    if y_true is not None:
+        true_frac = float(np.mean(y_true))
+        if true_frac > 0 and pos_frac < underfire_ratio_floor * true_frac:
+            reasons.append(
+                f"positive-window fraction {100*pos_frac:.4f}% is less than "
+                f"{100*underfire_ratio_floor:.0f}% of the true seizure-window "
+                f"rate ({100*true_frac:.4f}%) — likely under-firing collapse "
+                "(model gone non-responsive), not genuine high specificity."
+            )
+
+    return {
+        "positive_window_fraction": round(pos_frac, 4),
+        "n_predicted_blocks": len(pred_blocks),
+        "largest_block_fraction": round(largest_block_frac, 4),
+        "pass": len(reasons) == 0,
+        "reasons": reasons,
+    }
 
 def _max_consecutive(arr):
     """Return the length of the longest run of 1s in a binary array."""
@@ -177,18 +192,39 @@ def _max_consecutive(arr):
         else:
             current = 0
     return max_run
+def _first_sustained_run_start(arr, min_run):
+    """Index of the start of the first run of >= min_run consecutive 1s, or None."""
+    current_start = None
+    current_len = 0
+    for i, v in enumerate(arr):
+        if v == 1:
+            if current_len == 0:
+                current_start = i
+            current_len += 1
+            if current_len >= min_run:
+                return current_start
+        else:
+            current_len = 0
+    return None
 
-
-def _count_false_positives(y_pred, y_true, step_s, gap_tolerance_s):
+def _count_false_positives(y_pred, y_true, step_s, gap_tolerance_s, min_sustained_windows=1):
     """
     Count predicted positive events with no overlap with any true event.
     Uses the same gap-merging logic for consistency.
+
+    Gate 3e: a predicted block shorter than min_sustained_windows is not
+    counted as a false-positive "event" — mirrors the sustained-detection
+    floor already applied to true positives, so a momentary 1-window blip
+    isn't treated as a full clinical false alarm any more than it would be
+    treated as a detection.
     """
     pred_events = group_into_events(y_pred, step_s, gap_tolerance_s)
     true_events = group_into_events(y_true, step_s, gap_tolerance_s)
 
     fp = 0
     for p_start, p_end in pred_events:
+        if (p_end - p_start) < min_sustained_windows:
+            continue
         overlaps_any = any(
             p_start < t_end and p_end > t_start
             for t_start, t_end in true_events

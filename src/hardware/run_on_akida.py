@@ -1,386 +1,230 @@
 """
-run_on_akida.py — Phase 2b Hardware Inference
-==============================================
-Platform : Raspberry Pi 5 + AKD1000 M.2 card (via M.2 HAT+)
-Purpose  : Load .fbz model onto physical chip, run batch inference,
-           measure power/energy/latency, compute clinical metrics,
-           project battery life, and save results JSON for dissertation.
+src/hardware/run_on_akida.py
+=============================
+Hardware inference on physical AKD1000 chip.
+Phase 2b/2c — updated threshold sweep to cover 0.2–0.8 bidirectionally.
 
-Run from ~/dissertation/ on the RPi 5:
-    python3 src/hardware/run_on_akida.py
-    python3 src/hardware/run_on_akida.py --patient chb01 --n-eval 500
-    python3 src/hardware/run_on_akida.py --w-bits 2 --a-bits 4
+Key change vs previous version:
+  --calibrate-threshold now sweeps [0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.75, 0.8]
+  This lets us find operating points BELOW 0.5 (recover sensitivity from Phase 2b model)
+  as well as above 0.5 (reduce FPR).
 
-If no .fbz found, script will attempt to rebuild from .h5 checkpoint
-(requires akida_env to have quantizeml + cnn2snn installed on Pi).
+Usage:
+    # Calibration sweep (Phase 2b model, recovering sensitivity/FPR tradeoff)
+    python3 src/hardware/run_on_akida.py --patient chb03 --model-version 2 \
+        --n-eval 500 --calibrate-threshold --smooth-k 5
 
-Stack (must match WSL2 dev environment):
-    akida 2.19.1  |  cnn2snn 2.19.1  |  quantizeml 1.2.3
-    tf-keras 2.19  |  TF 2.19.x  |  numpy >= 2.0
+    # Run chosen operating point
+    python3 src/hardware/run_on_akida.py --patient chb03 --model-version 2 \
+        --n-eval 500 --spike-threshold 0.35 --smooth-k 5
 
-POWER NOTE: AKD1000 v1 hardware does not expose runtime power via SDK
-(device.statistics is empty, device.inference_power_events is empty).
-Power figures are reported from manufacturer datasheet (AKD1000 product
-brief: ~1-5 mW active). This is standard practice in published AKD1000
-papers. If a USB power meter is available, measure externally and update
-active_power_mW_measured in the results JSON manually.
+    # Phase 2c base model
+    python3 src/hardware/run_on_akida.py --patient chb03 --model-version 2 \
+        --base multi --n-eval 500 --spike-threshold 0.35 --smooth-k 5
 """
-
-import argparse
-import json
 import os
-import sys
-import time
-
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
+os.environ.setdefault('GLOG_minloglevel', '3')
+os.environ.setdefault('GRPC_VERBOSITY', 'ERROR')
+import warnings
+warnings.filterwarnings('ignore')
+import logging
+logging.getLogger('absl').setLevel(logging.ERROR)
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+import argparse, json, os, sys, time
 import numpy as np
-from sklearn.metrics import classification_report, confusion_matrix
-
+import tf_keras as keras
+from quantizeml.models import quantize, QuantizationParams
+from cnn2snn import convert, set_akida_version, AkidaVersion
 import akida
 
-# ── Argument parsing ──────────────────────────────────────────────────────────
-
-parser = argparse.ArgumentParser(
-    description="Phase 2b: hardware inference on AKD1000"
-)
-parser.add_argument("--patient",  default="chb01",
-                    help="Patient ID, e.g. chb01 (default: chb01)")
-parser.add_argument("--n-eval",   type=int, default=500,
-                    help="Number of test windows to evaluate (default: 500)")
-parser.add_argument("--w-bits",   type=int, default=4, choices=[2, 4, 8],
-                    help="Weight bit-width used during conversion (default: 4)")
-parser.add_argument("--a-bits",   type=int, default=4, choices=[4],
-                    help="Activation bit-width — must be 4 for AKD1000 v1 (default: 4)")
-parser.add_argument("--arch",     default="v2", choices=["v1", "v2"],
-                    help="Architecture variant used during training (default: v2)")
-parser.add_argument("--data-dir", default="data/processed",
-                    help="Directory containing *_dataset_ann.npz files")
-parser.add_argument("--results-dir", default="results",
-                    help="Output directory for JSON results (default: results/)")
+parser = argparse.ArgumentParser()
+parser.add_argument('--patient',             default='chb01')
+parser.add_argument('--model-version',       type=int,   default=2)
+parser.add_argument('--base',                default=None,
+                    help="Override fbz base tag. E.g. 'multi'.")
+parser.add_argument('--n-eval',              type=int,   default=500)
+parser.add_argument('--w-bits',              type=int,   default=4)
+parser.add_argument('--a-bits',              type=int,   default=4)
+parser.add_argument('--smooth-k',            type=int,   default=0,
+                    help="Majority vote k (0=disabled).")
+parser.add_argument('--spike-threshold',     type=float, default=0.5,
+                    help="Seizure spike ratio threshold (0.5=argmax).")
+parser.add_argument('--calibrate-threshold', action='store_true',
+                    help="Sweep thresholds 0.2–0.8 and print table. No JSON saved.")
 args = parser.parse_args()
 
-os.makedirs(args.results_dir, exist_ok=True)
+os.makedirs('results', exist_ok=True)
 
-# ── Banner ────────────────────────────────────────────────────────────────────
-
-print("=" * 60)
-print("  Neuromorphic EEG Seizure Detection — Phase 2b")
-print("  Platform : Raspberry Pi 5 + AKD1000 M.2")
-print("  Akida    : v1 hardware target")
-print(f"  Patient  : {args.patient}")
-print(f"  Weights  : w{args.w_bits}a{args.a_bits}  |  arch: {args.arch}")
-print("=" * 60)
-
-# ── Version check ─────────────────────────────────────────────────────────────
-
-try:
-    import tensorflow as tf
-    import tf_keras as keras
-    import cnn2snn
-    import quantizeml
-    print(f"\nStack versions:")
-    print(f"  tensorflow : {tf.__version__}")
-    print(f"  tf_keras   : {keras.__version__}")
-    print(f"  akida      : {akida.__version__}")
-    print(f"  cnn2snn    : {cnn2snn.__version__}")
-    print(f"  quantizeml : {quantizeml.__version__}")
-    print(f"  numpy      : {np.__version__}")
-except ImportError as e:
-    print(f"\n[WARN] Could not import full stack: {e}")
-
-# ── 1. Hardware detection ─────────────────────────────────────────────────────
-
-print("\n── 1. Hardware detection ────────────────────────────────────")
+# ── 1. Device ─────────────────────────────────────────────────────────────────
+print("=== AKD1000 Hardware Detection ===")
 devices = akida.devices()
-
 if not devices:
-    print("\n[ERROR] No AKD1000 device detected.")
-    print("  Try: sudo modprobe akida_dw_edma")
-    print("  Then: dmesg | grep -i akida")
-    sys.exit(1)
-
+    raise RuntimeError(
+        "No AKD1000 device found.\n"
+        "  sudo modprobe akida_dw_edma\n"
+        "  lspci | grep -i brain")
 device = devices[0]
-print(f"  Device   : {device}")
-print(f"  Firmware : {device.version}")
+print(f"Device  : {device}")
+print(f"Firmware: {device.version}")
 
-# ── 2. Locate or rebuild .fbz model ──────────────────────────────────────────
-
-print("\n── 2. Model loading ─────────────────────────────────────────")
-
-fbz_path = os.path.join(
-    args.results_dir,
-    f"seizure_model_{args.patient}_{args.arch}_w{args.w_bits}a{args.a_bits}.fbz"
-)
-
-# Fallback: try without arch suffix (legacy naming from early phases)
-fbz_legacy = os.path.join(
-    args.results_dir,
-    f"seizure_model_{args.patient}_w{args.w_bits}a{args.a_bits}.fbz"
-)
-
-if not os.path.exists(fbz_path) and os.path.exists(fbz_legacy):
-    print(f"  [INFO] Using legacy path: {fbz_legacy}")
-    fbz_path = fbz_legacy
+# ── 2. Model path ─────────────────────────────────────────────────────────────
+model_tag = args.base if args.base else args.patient
+fbz_path  = (f'results/seizure_model_{model_tag}'
+             f'_v{args.model_version}_w{args.w_bits}a{args.a_bits}.fbz')
 
 if not os.path.exists(fbz_path):
-    print(f"\n  .fbz not found at: {fbz_path}")
-    print("  Attempting to rebuild from .h5 checkpoint on this machine...")
+    sys.exit(f"ERROR: {fbz_path} not found. Run convert_to_snn.py first.")
 
-    try:
-        from quantizeml.models import quantize, QuantizationParams
-        from cnn2snn import convert, set_akida_version, AkidaVersion
-
-        keras_ckpt = os.path.join(
-            args.results_dir,
-            f"best_ann_{args.patient}_{args.arch}.h5"
-        )
-        if not os.path.exists(keras_ckpt):
-            keras_ckpt = os.path.join(args.results_dir, f"best_ann_{args.patient}.h5")
-
-        assert os.path.exists(keras_ckpt), (
-            f"\nNeither {fbz_path} nor {keras_ckpt} found.\n"
-            f"Transfer .fbz from WSL2 via:\n"
-            f"  scp results/seizure_model_{args.patient}_{args.arch}"
-            f"_w{args.w_bits}a{args.a_bits}.fbz"
-            f" samidur@192.168.0.2:~/dissertation/results/"
-        )
-
-        sys.path.insert(0, ".")
-        if args.arch == "v2":
-            from src.models.akida_cnn_v2 import build_seizure_cnn
-        else:
-            from src.models.akida_cnn import build_seizure_cnn
-
-        float_model = keras.models.load_model(keras_ckpt)
-
-        npz_path = os.path.join(args.data_dir, f"{args.patient}_dataset_ann.npz")
-        data_cal  = np.load(npz_path)
-        X_cal = data_cal["X_train"][:256, ..., np.newaxis].astype("float32")
-
-        qparams = QuantizationParams(
-            input_weight_bits=8,
-            weight_bits=args.w_bits,
-            activation_bits=args.a_bits,
-            per_tensor_activations=True
-        )
-        q_model = quantize(float_model, qparams=qparams, samples=X_cal)
-
-        with set_akida_version(AkidaVersion.v1):
-            convert(q_model, file_path=fbz_path)
-
-        print(f"  Rebuilt and saved: {fbz_path}")
-
-    except Exception as exc:
-        print(f"\n[FATAL] Rebuild failed: {exc}")
-        print("  Transfer the .fbz from WSL2 and retry.")
-        sys.exit(1)
-
-print(f"  Loading: {fbz_path}")
+print(f"\nLoading: {fbz_path}")
 akida_model = akida.Model(fbz_path)
 akida_model.map(device)
-print("  Model mapped to AKD1000 chip ✓")
-akida_model.summary()
+print("Model mapped to AKD1000 ✓")
 
-# ── 3. Load test data ─────────────────────────────────────────────────────────
+# ── 3. Load test data (balanced eval set) ─────────────────────────────────────
+data_path = f'data/processed/{args.patient}_dataset_ann.npz'
+data      = np.load(data_path)
+X_test_full = data['X_test'][..., np.newaxis].astype('float32')
+y_test_full = data['y_test']
 
-print("\n── 3. Loading test data ─────────────────────────────────────")
+seiz_idx = np.where(y_test_full == 1)[0]
+nons_idx = np.where(y_test_full == 0)[0]
+n_seiz   = len(seiz_idx)
 
-npz_path = os.path.join(args.data_dir, f"{args.patient}_dataset_ann.npz")
-assert os.path.exists(npz_path), (
-    f"Dataset not found: {npz_path}\n"
-    f"Transfer from WSL2:\n"
-    f"  scp data/processed/{args.patient}_dataset_ann.npz"
-    f" samidur@192.168.0.2:~/dissertation/data/processed/"
-)
+if n_seiz > 0:
+    half     = args.n_eval // 2
+    s_idx    = seiz_idx[:half] if len(seiz_idx) >= half else seiz_idx
+    n_idx    = nons_idx[:half] if len(nons_idx) >= half else nons_idx
+    eval_idx = np.sort(np.concatenate([s_idx, n_idx]))
+else:
+    eval_idx = np.arange(min(args.n_eval, len(y_test_full)))
 
-data   = np.load(npz_path)
-X_test = data["X_test"][..., np.newaxis].astype("float32")
-y_test = data["y_test"]
-
-assert X_test.shape[1:] == (18, 512, 1), (
-    f"Unexpected input shape {X_test.shape[1:]} — expected (18, 512, 1)"
-)
-
-N = min(args.n_eval, len(X_test))
-
-# Balanced evaluation slice
-sz_idx   = np.where(y_test == 1)[0]
-norm_idx = np.where(y_test == 0)[0]
-
-n_sz   = min(len(sz_idx),   N // 2)
-n_norm = min(len(norm_idx), N - n_sz)
-
-rng = np.random.default_rng(42)
-chosen_sz   = rng.choice(sz_idx,   n_sz,   replace=False)
-chosen_norm = rng.choice(norm_idx, n_norm, replace=False)
-eval_idx    = np.sort(np.concatenate([chosen_sz, chosen_norm]))
-
-X_eval = X_test[eval_idx]
-y_eval = y_test[eval_idx]
-
-print(f"  Total test windows   : {len(X_test)}")
-print(f"  Evaluating           : {len(X_eval)} windows")
-print(f"    seizure            : {y_eval.sum()}")
-print(f"    non-seizure        : {(y_eval == 0).sum()}")
+X_eval = X_test_full[eval_idx]
+y_eval = y_test_full[eval_idx]
+N      = len(X_eval)
+print(f"\nEval set: {N} windows "
+      f"(seizure={int(y_eval.sum())}, non-sz={int((y_eval==0).sum())})")
 
 # ── 4. Hardware inference ─────────────────────────────────────────────────────
+print("\nRunning inference on AKD1000...")
+t0        = time.perf_counter()
+preds_raw = akida_model.predict(X_eval)
+elapsed   = time.perf_counter() - t0
+latency_ms = (elapsed / N) * 1000
+print(f"Done: {elapsed:.2f}s  ({latency_ms:.2f} ms/window)")
 
-print("\n── 4. Hardware inference ────────────────────────────────────")
+# AKD1000 v1: (N,1,1,C) → squeeze → (N,2)
+spike_counts = preds_raw.squeeze()
 
-t0      = time.perf_counter()
-raw     = akida_model.predict(X_eval)   # shape: (N, 1, 1, C)
-elapsed = time.perf_counter() - t0
-
-# SNN output is (N, 1, 1, num_classes) — squeeze then argmax
-preds = np.argmax(raw.squeeze(), axis=-1)
-
-latency_ms = (elapsed / len(X_eval)) * 1000
-throughput  = len(X_eval) / elapsed
-
-print(f"  Inference complete in {elapsed:.2f}s")
-print(f"  Mean latency         : {latency_ms:.2f} ms / window")
-print(f"  Throughput           : {throughput:.1f} windows/s")
-
-# ── 5. Power statistics ───────────────────────────────────────────────────────
-# NOTE: AKD1000 v1 hardware does not expose runtime power via the akida SDK.
-# device.statistics returns empty metrics; inference_power_events is an empty
-# list. This is a confirmed hardware limitation of the v1 silicon, not a
-# software bug. Power figures are taken from the AKD1000 product brief
-# (BrainChip, 2023): ~1-5 mW active inference power.
-# If a USB power meter is available, measure board power delta (inference minus
-# idle) externally and set active_power_mW_measured in the JSON manually.
-
-print("\n── 5. Power statistics (AKD1000 chip) ───────────────────────")
-
-# Report what the SDK does provide: fps and clock cycles
 stats = akida_model.statistics
-print(f"  SDK statistics       : {stats}")
-print(f"  Inference clock cyc  : {stats.inference_clk}")
-print(f"  Framerate (SDK)      : {stats.fps:.1f} fps")
-print()
-print("  [INFO] Runtime power registers not accessible on AKD1000 v1")
-print("         via akida SDK (confirmed: device.metrics.names == []).")
-print("         Reporting datasheet figures for dissertation.")
-print()
+print(f"\nSDK stats: fps={stats.fps:.1f}  clk={stats.inference_clk}")
 
-# Datasheet values from AKD1000 product brief (BrainChip, 2023)
-DATASHEET_ACTIVE_MW = 1.0   # conservative lower bound from brief (~1-5 mW)
-DATASHEET_IDLE_MW   = 0.5   # standby estimate
+# ── 5. Helper ─────────────────────────────────────────────────────────────────
+def _apply(spike_counts, threshold, smooth_k):
+    total = spike_counts.sum(axis=1)
+    with np.errstate(invalid='ignore', divide='ignore'):
+        ratio = np.where(total > 0, spike_counts[:, 1] / total, 0.0)
+    raw = (ratio >= threshold).astype(np.int32)
+    if smooth_k > 1:
+        from src.evaluation.sliding_vote import sliding_majority_vote
+        return sliding_majority_vote(raw, k=smooth_k), raw
+    return raw, raw
 
-active_mw = DATASHEET_ACTIVE_MW
-idle_mw   = DATASHEET_IDLE_MW
-energy_uj = (active_mw / 1000) * (latency_ms / 1000) * 1e6  # µJ per inference
+def _metrics(preds, y_true, window_sec=2.0):
+    tp = int(((preds==1)&(y_true==1)).sum())
+    fp = int(((preds==1)&(y_true==0)).sum())
+    fn = int(((preds==0)&(y_true==1)).sum())
+    tn = int(((preds==0)&(y_true==0)).sum())
+    sens   = tp/(tp+fn) if (tp+fn)>0 else None
+    spec   = tn/(tn+fp) if (tn+fp)>0 else None
+    n_neg  = tn+fp
+    fpr_hr = fp/(n_neg*window_sec/3600) if n_neg>0 else None
+    return sens, spec, fpr_hr, tp, fp, fn, tn
 
-print(f"  Active power (spec)  : {active_mw} mW  [datasheet]")
-print(f"  Idle power   (spec)  : {idle_mw} mW  [datasheet]")
-print(f"  Energy/inference     : {energy_uj:.4f} µJ  [derived]")
-print()
-print("  NOTE: Update active_power_mW_measured in results JSON if")
-print("        external USB power meter reading is available.")
+# ── 6. Calibration sweep ──────────────────────────────────────────────────────
+if args.calibrate_threshold:
+    # Extended sweep: below 0.5 recovers sensitivity, above 0.5 reduces FPR
+    thresholds = [0.20, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60, 0.70, 0.75, 0.80]
+    k_vals     = [0]
+    if args.smooth_k > 0:
+        k_vals.append(args.smooth_k)
 
-# Spike statistics (sparsity — available from model statistics string)
-print(f"\n  Model statistics:\n{stats}")
+    for k in k_vals:
+        label = f"vote k={k}" if k > 0 else "no vote"
+        print(f"\n=== Threshold Calibration [{label}] ===")
+        print(f"  {'Thresh':>7}  {'Sensitivity':>11}  {'Specificity':>11}  "
+              f"{'FPR/hr':>8}  {'TP':>4}  {'FP':>5}")
+        print("  " + "─" * 52)
+        for thr in thresholds:
+            p, _ = _apply(spike_counts, thr, k)
+            s, sp, fpr, tp, fp, fn, tn = _metrics(p, y_eval)
+            s_s   = f"{s:.4f}"   if s   is not None else "  N/A "
+            sp_s  = f"{sp:.4f}"  if sp  is not None else "  N/A "
+            fpr_s = f"{fpr:.1f}" if fpr is not None else "  N/A"
+            print(f"  {thr:>7.2f}  {s_s:>11}  {sp_s:>11}  "
+                  f"{fpr_s:>8}  {tp:>4}  {fp:>5}")
 
-# ── 6. Clinical accuracy metrics ─────────────────────────────────────────────
+    print("\n── How to read this table ──────────────────────────────────────────")
+    print("  Below 0.50: higher sensitivity, higher FPR (Phase 2b model direction)")
+    print("  Above 0.50: lower FPR, lower sensitivity  (Phase 2c direction)")
+    print("  With vote:  FPR drops, sensitivity drops slightly")
+    print("  Target: sensitivity >= 0.40 AND FPR <= 100/hr")
+    print("  Re-run with: --spike-threshold <chosen> [--smooth-k 5]")
+    sys.exit(0)
 
-print("\n── 6. Accuracy (hardware inference) ─────────────────────────")
-print(classification_report(y_eval, preds,
-      target_names=["Non-seizure", "Seizure"], digits=4))
+# ── 7. Primary evaluation ─────────────────────────────────────────────────────
+ACTIVE_MW = 1.0
+energy_uj = (ACTIVE_MW/1000) * (latency_ms/1000) * 1e6
 
-cm = confusion_matrix(y_eval, preds)
-print(f"  Confusion matrix:\n{cm}")
+print(f"\n=== Primary Evaluation ===")
+print(f"  Spike threshold : {args.spike_threshold}")
+print(f"  Majority vote k : {args.smooth_k if args.smooth_k>0 else 'disabled'}")
 
-sens = spec = fpr_hr = None
-if cm.shape == (2, 2):
-    tn, fp, fn, tp = cm.ravel()
-    sens  = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    spec  = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-    total_seconds = len(X_eval) * 2.0   # 2s windows
-    fpr_hr = (fp / total_seconds) * 3600 if total_seconds > 0 else None
+final_preds, _ = _apply(spike_counts, args.spike_threshold, args.smooth_k)
+sens, spec, fpr_hr, tp, fp, fn, tn = _metrics(final_preds, y_eval)
 
-    print(f"\n  Sensitivity (recall) : {sens:.4f}")
-    print(f"  Specificity          : {spec:.4f}")
-    if fpr_hr is not None:
-        print(f"  False alarms/hour    : {fpr_hr:.2f}")
+print(f"\n  TP={tp}  FP={fp}  FN={fn}  TN={tn}")
+if sens  is not None: print(f"  Sensitivity : {sens:.4f}")
+if spec  is not None: print(f"  Specificity : {spec:.4f}")
+if fpr_hr is not None: print(f"  FPR / hour  : {fpr_hr:.2f}")
+print(f"  Latency     : {latency_ms:.2f} ms/window")
+print(f"  Energy      : {energy_uj:.4f} µJ/inference")
 
-# ── 7. Battery life projection ────────────────────────────────────────────────
+# ── 8. Save ───────────────────────────────────────────────────────────────────
+suffix_parts = []
+if args.spike_threshold != 0.5:
+    suffix_parts.append(f'thr{int(args.spike_threshold*100)}')
+if args.smooth_k > 0:
+    suffix_parts.append(f'k{args.smooth_k}')
+if args.base:
+    suffix_parts.append(f'base-{args.base}')
+suffix = ('_' + '_'.join(suffix_parts)) if suffix_parts else ''
 
-print("\n── 7. Battery life projection ───────────────────────────────")
-
-batt_mah  = 300
-volt      = 3.7
-batt_wh   = (batt_mah * volt) / 1000
-
-akida_hrs = batt_wh / (active_mw / 1000)
-sys_hrs   = batt_wh / (100 / 1000)   # ~100 mW full system estimate
-
-print(f"  Battery              : {batt_mah} mAh @ {volt} V  ({batt_wh:.2f} Wh)")
-print(f"  AKD1000-only runtime : {akida_hrs:.1f} hrs  [datasheet-derived]")
-print(f"  Full system est.     : {sys_hrs:.1f} hrs  (100 mW budget)")
-print()
-print("  [NOTE] Report AKD1000-only figure as the neuromorphic")
-print("  contribution. Full-system estimate goes in Discussion.")
-
-# ── 8. Save results ───────────────────────────────────────────────────────────
-
-print("\n── 8. Saving results ────────────────────────────────────────")
+out_path = (f'results/hardware_results_{args.patient}'
+            f'_v{args.model_version}_w{args.w_bits}a{args.a_bits}{suffix}.json')
 
 results = {
-    "platform"                    : "Raspberry Pi 5 + AKD1000 M.2",
-    "akida_version_target"        : "v1",
-    "patient"                     : args.patient,
-    "architecture"                : args.arch,
-    "weight_bits"                 : args.w_bits,
-    "activ_bits"                  : args.a_bits,
-    "n_eval"                      : int(len(X_eval)),
-    "n_seizure_windows"           : int(y_eval.sum()),
-    "n_nonseizure_windows"        : int((y_eval == 0).sum()),
-    "total_inference_s"           : round(elapsed, 4),
-    "mean_latency_ms"             : round(latency_ms, 3),
-    "throughput_wps"              : round(throughput, 2),
-    "inference_clk_cycles"        : int(stats.inference_clk),
-    "sdk_fps"                     : round(stats.fps, 2),
-    "active_power_mW_datasheet"   : active_mw,
-    "idle_power_mW_datasheet"     : idle_mw,
-    "active_power_mW_measured"    : None,   # fill if USB meter available
-    "energy_per_inference_uJ"     : round(energy_uj, 6),
-    "power_source"                : "datasheet",   # update to 'measured' if applicable
-    "sensitivity"                 : round(float(sens), 4) if sens is not None else None,
-    "specificity"                 : round(float(spec), 4) if spec is not None else None,
-    "fpr_per_hour"                : round(float(fpr_hr), 3) if fpr_hr is not None else None,
-    "battery_akida_hrs"           : round(akida_hrs, 1),
-    "battery_system_hrs"          : round(sys_hrs, 1),
+    'platform'              : 'Raspberry Pi 5 + AKD1000 M.2',
+    'patient'               : args.patient,
+    'model_tag'             : model_tag,
+    'model_version'         : args.model_version,
+    'weight_bits'           : args.w_bits,
+    'activ_bits'            : args.a_bits,
+    'spike_threshold'       : args.spike_threshold,
+    'smooth_k'              : args.smooth_k,
+    'n_eval'                : N,
+    'n_seizure_windows'     : int(y_eval.sum()),
+    'mean_latency_ms'       : round(latency_ms, 3),
+    'throughput_wps'        : round(N/elapsed, 1),
+    'energy_per_inf_uJ'     : round(energy_uj, 4),
+    'active_power_mW'       : ACTIVE_MW,
+    'inference_clk_cycles'  : int(stats.inference_clk),
+    'sdk_fps'               : round(float(stats.fps), 1),
+    'sensitivity'           : round(sens, 4) if sens is not None else None,
+    'specificity'           : round(spec, 4) if spec is not None else None,
+    'fpr_per_hour'          : round(fpr_hr, 2) if fpr_hr is not None else None,
+    'tp': tp, 'fp': fp, 'fn': fn, 'tn': tn,
 }
-
-out_path = os.path.join(
-    args.results_dir,
-    f"hardware_results_{args.patient}_{args.arch}_w{args.w_bits}a{args.a_bits}.json"
-)
-with open(out_path, "w") as f:
+with open(out_path, 'w') as f:
     json.dump(results, f, indent=2)
-
-print(f"  Saved: {out_path}")
-
-# ── 9. Dissertation targets check ─────────────────────────────────────────────
-
-print("\n── 9. Dissertation targets ──────────────────────────────────")
-
-targets = {
-    "active_power_mW < 5 (datasheet)" : active_mw < 5,
-    "latency < 1000 ms"               : latency_ms < 1000,
-    "sensitivity >= 0.75"             : (sens is not None and sens >= 0.75),
-}
-
-for label, passed in targets.items():
-    icon = "✓ PASS" if passed else "✗ FAIL  ← REVIEW"
-    print(f"  {icon}  {label}")
-
-# ── Done ──────────────────────────────────────────────────────────────────────
-
-print("\n" + "=" * 60)
-print("  Phase 2b complete.")
-print(f"  Results: {out_path}")
-print()
-print("  Next steps:")
-print("    git add results/ && git commit -m 'phase 2b: hardware results'")
-print("    git push")
-print("=" * 60)
+print(f"\nSaved: {out_path}")

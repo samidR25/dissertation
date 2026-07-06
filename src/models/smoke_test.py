@@ -17,6 +17,15 @@ API rules (cnn2snn 2.19.1 / quantizeml 1.2.3 — verified live):
   - Call on FLOAT model only
   - Wrap in set_akida_version(AkidaVersion.v1)
 """
+import os
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
+os.environ.setdefault('GLOG_minloglevel', '3')
+os.environ.setdefault('GRPC_VERBOSITY', 'ERROR')
+import warnings
+warnings.filterwarnings('ignore')
+import logging
+logging.getLogger('absl').setLevel(logging.ERROR)
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 import argparse, sys
 import numpy as np
 import tensorflow as tf
@@ -26,6 +35,7 @@ from cnn2snn import check_model_compatibility, set_akida_version, AkidaVersion
 parser = argparse.ArgumentParser()
 parser.add_argument('--gate',    type=int, default=1, choices=[1, 2, 3])
 parser.add_argument('--patient', default='chb01')
+parser.add_argument('--model-version', type=int, default=2, choices=[1, 2])
 args = parser.parse_args()
 
 GATE_CONFIG = {
@@ -53,12 +63,13 @@ y_v  = data['y_val'][:n_val]
 
 print(f"Train: {len(X_tr)} | Val: {len(X_v)} | "
       f"Seizure in train: {int(y_tr.sum())} | in val: {int(y_v.sum())}")
-
 # ── Build model ───────────────────────────────────────────────────
-
-from src.models.akida_cnn import build_seizure_cnn
-
-model = build_seizure_cnn(n_channels=18, window_samples=512)
+if args.model_version == 1:
+    from src.models.akida_cnn import build_seizure_cnn
+    model = build_seizure_cnn(n_channels=18, window_samples=512)
+else:
+    from src.models.akida_cnn_v2 import build_seizure_cnn_v2
+    model = build_seizure_cnn_v2(n_channels=18, window_samples=512)
 model.compile(
     optimizer=keras.optimizers.Adam(1e-3),
     loss='sparse_categorical_crossentropy',

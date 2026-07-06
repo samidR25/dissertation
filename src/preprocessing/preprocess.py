@@ -20,6 +20,14 @@ Run from: ~/dissertation/
     python3 code/preprocessing/preprocess.py
 """
 import os
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '3')
+os.environ.setdefault('GLOG_minloglevel', '3')
+os.environ.setdefault('GRPC_VERBOSITY', 'ERROR')
+import warnings
+warnings.filterwarnings('ignore')
+import logging
+logging.getLogger('absl').setLevel(logging.ERROR)
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 import re
 import numpy as np
 import mne
@@ -315,21 +323,35 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
     if not tmp_files:
         raise RuntimeError(f"No EDF files processed for {patient_id}")
 
-    # ── Concatenate via memmap ────────────────────────────────────────────────
-    print(f"\nConcatenating {len(tmp_files)} temp files...")
-    all_X, all_y = [], []
+# ── Concatenate via true streaming memmap ───────────────────────────────
+    print(f"\nConcatenating {len(tmp_files)} temp files (streaming)...")
+
+    shapes = []
     for tp in tmp_files:
         d = np.load(tp, mmap_mode='r')
-        all_X.append(np.array(d['X']))
-        all_y.append(np.array(d['y']))
+        shapes.append(d['X'].shape)
+        del d
+    total_n = sum(s[0] for s in shapes)
+    ch, samples = shapes[0][1], shapes[0][2]
+    print(f"  Total windows across all files: {total_n}")
+
+    X_memmap_path = os.path.join(tmp_dir, '_X_full.npy')
+    X = np.lib.format.open_memmap(
+        X_memmap_path, mode='w+', dtype=np.float32,
+        shape=(total_n, ch, samples)
+    )
+    y = np.zeros(total_n, dtype=np.int32)
+
+    offset = 0
+    for tp in tmp_files:
+        d = np.load(tp, mmap_mode='r')
+        n = d['X'].shape[0]
+        X[offset:offset + n] = d['X'][:]
+        y[offset:offset + n] = d['y'][:]
+        offset += n
         del d
         gc.collect()
-
-    X = np.concatenate(all_X, axis=0)
-    y = np.concatenate(all_y,  axis=0)
-    del all_X, all_y
-    gc.collect()
-
+    X.flush()
     print(f"\n{'='*50}")
     print(f"Patient {patient_id} — full dataset")
     print(f"  Total windows  : {len(X)}")
@@ -338,15 +360,214 @@ def build_patient_dataset(patient_dir, patient_id, output_dir):
           f"(channels={X.shape[1]}, samples={X.shape[2]})")
 
     os.makedirs(output_dir, exist_ok=True)
-    raw_path = os.path.join(output_dir, f'{patient_id}_windows.npz')
-    np.savez_compressed(raw_path, X=X, y=y)
-    print(f"\nRaw windows saved: {raw_path}")
-
+    X_path = os.path.join(output_dir, f'{patient_id}_X.npy')
+    y_path = os.path.join(output_dir, f'{patient_id}_y.npy')
+    np.save(X_path, X)
+    np.save(y_path, y)
+    print(f"\nRaw windows saved: {X_path}, {y_path}")
     # Clean up temp files
     import shutil
     shutil.rmtree(tmp_dir)
 
     return X, y
+
+# ── Long-context channels (Gate 1) ───────────────────────────────────────────
+# Handoff_architecture_scoping_to_implementation.md §4. Deliberately a
+# SEPARATE function rather than a modification of preprocess_edf() above —
+# the long-lookback channels must be computed on the CONTINUOUS per-file
+# signal before windowing (the lookback reaches back before each window's
+# start, which doesn't exist once windowing has already happened). Wrap,
+# don't replace: preprocess_edf() above is untouched; the existing
+# 1-channel pipeline behaves identically to before this patch.
+from src.preprocessing.longctx_features import rolling_line_length, rolling_band_ratio
+
+
+def preprocess_edf_longctx(edf_path, window_s, longctx_lookback_s, verbose=False):
+    """
+    Long-context variant of preprocess_edf(). Same filter/notch/CAR/resample
+    steps, but the two extra channels (rolling line-length, rolling
+    delta/beta ratio) are computed on the continuous post-CAR signal BEFORE
+    windowing, then all three channels are windowed with the SAME
+    start/step loop — guaranteeing identical window boundaries across
+    channels.
+
+    Returns:
+        windows : (n_windows, 18, window_samples, 3) float32
+                  ch0 = raw EEG, ch1 = rolling line-length,
+                  ch2 = rolling delta/beta ratio
+        sfreq   : float
+    """
+    raw = mne.io.read_raw_edf(edf_path, preload=True, verbose=verbose)
+    sfreq = raw.info['sfreq']
+
+    raw.pick(list(range(18)))
+    raw.filter(L_FREQ, H_FREQ, fir_window='hamming', verbose=verbose)
+    raw.notch_filter([60.0], verbose=verbose)
+    raw.set_eeg_reference('average', verbose=verbose)
+
+    if sfreq != SFREQ_TARGET:
+        raw.resample(SFREQ_TARGET, verbose=verbose)
+        sfreq = SFREQ_TARGET
+
+    data, _ = raw[:]   # (18, n_timepoints) continuous, post-filter/CAR
+
+    lookback_samples = int(longctx_lookback_s * sfreq)
+    line_length = rolling_line_length(data, lookback_samples)
+    band_ratio  = rolling_band_ratio(data, lookback_samples, fs=sfreq)
+
+    window_samples = int(window_s * sfreq)
+    step_samples   = int(window_samples * (1 - OVERLAP))
+
+    windows = []
+    start = 0
+    while start + window_samples <= data.shape[1]:
+        end = start + window_samples
+        windows.append(np.stack([
+            data[:, start:end],
+            line_length[:, start:end],
+            band_ratio[:, start:end],
+        ], axis=-1).astype(np.float32))   # (18, window_samples, 3)
+        start += step_samples
+
+    windows = np.array(windows)   # (n_windows, 18, window_samples, 3)
+    return windows, sfreq
+
+
+def build_patient_dataset_longctx(patient_dir, patient_id, output_dir,
+                                  window_s, longctx_lookback_s):
+    """
+    Long-context analogue of build_patient_dataset() above. Same per-file
+    streaming/memmap memory pattern — the long-context channels triple the
+    per-window footprint (3ch vs 1ch), so this discipline matters more
+    here, not less.
+
+    Outputs (distinctly named so they never collide with the 1-channel
+    baseline artifacts):
+        {output_dir}/{patient_id}_X_longctx_w{window_samples}.npy
+        {output_dir}/{patient_id}_y_longctx_w{window_samples}.npy
+        {output_dir}/{patient_id}_X_longctx_w{window_samples}.npy.manifest.json
+    """
+    summary_path = os.path.join(patient_dir, f'{patient_id}-summary.txt')
+    if not os.path.exists(summary_path):
+        raise FileNotFoundError(f"Summary file not found: {summary_path}")
+
+    seizure_map = parse_chbmit_summary(summary_path)
+
+    edf_files = sorted([
+        f for f in os.listdir(patient_dir)
+        if f.endswith('.edf') and f.startswith(patient_id)
+    ])
+
+    window_samples = int(window_s * SFREQ_TARGET)
+    print(f"\nProcessing {len(edf_files)} EDF files for {patient_id} "
+          f"(longctx, window_s={window_s}, lookback_s={longctx_lookback_s}, "
+          f"window_samples={window_samples})...")
+
+    import tempfile
+    os.makedirs(output_dir, exist_ok=True)
+    tmp_dir = tempfile.mkdtemp(prefix=f'{patient_id}_longctx_', dir=output_dir)
+    tmp_files = []
+
+    for fname in edf_files:
+        edf_path = os.path.join(patient_dir, fname)
+        print(f"\n  [{fname}]")
+
+        try:
+            windows, sfreq = preprocess_edf_longctx(
+                edf_path, window_s=window_s,
+                longctx_lookback_s=longctx_lookback_s, verbose=False
+            )
+        except Exception as ex:
+            print(f"  ERROR loading {fname}: {ex} — skipping")
+            continue
+
+        intervals = seizure_map.get(fname, [])
+        labels = label_windows(len(windows), intervals,
+                               sfreq=sfreq, window_s=window_s,
+                               overlap=OVERLAP)
+
+        n_sz = labels.sum()
+        print(f"  Windows: {len(windows)} | Seizure: {n_sz} | "
+              f"Non-seizure: {len(windows)-n_sz}")
+
+        tmp_path = os.path.join(tmp_dir, fname.replace('.edf', '.npz'))
+        np.savez_compressed(tmp_path, X=windows, y=labels)
+        tmp_files.append(tmp_path)
+
+        del windows, labels
+        gc.collect()
+
+    if not tmp_files:
+        raise RuntimeError(f"No EDF files processed for {patient_id}")
+
+    print(f"\nConcatenating {len(tmp_files)} temp files (streaming)...")
+    shapes = []
+    for tp in tmp_files:
+        d = np.load(tp, mmap_mode='r')
+        shapes.append(d['X'].shape)
+        del d
+    total_n = sum(s[0] for s in shapes)
+    ch, samples, n_feat_ch = shapes[0][1], shapes[0][2], shapes[0][3]
+    print(f"  Total windows across all files: {total_n}")
+
+    # Gate 1 disk-fix: build the memmap DIRECTLY at its final location in
+    # output_dir, instead of a separate tmp-dir copy later np.save()'d to
+    # its real home. That round-trip was doubling peak disk demand (~37GB
+    # instead of ~18.5GB for chb10 ws=512) — the same class of problem
+    # build_dataset_stft.py's docstring already diagnosed for chb03's
+    # 3-channel case (13.2GB not fitting in 12GB RAM / 7.4GB free disk).
+    # Materialize once, in the right place, and free each per-file temp
+    # piece immediately rather than waiting for the final rmtree.
+    os.makedirs(output_dir, exist_ok=True)
+    X_path = os.path.join(output_dir, f'{patient_id}_X_longctx_w{window_samples}.npy')
+    y_path = os.path.join(output_dir, f'{patient_id}_y_longctx_w{window_samples}.npy')
+
+    X = np.lib.format.open_memmap(
+        X_path, mode='w+', dtype=np.float32,
+        shape=(total_n, ch, samples, n_feat_ch)
+    )
+    y = np.zeros(total_n, dtype=np.int32)
+
+    offset = 0
+    for tp in tmp_files:
+        d = np.load(tp, mmap_mode='r')
+        n = d['X'].shape[0]
+        X[offset:offset + n] = d['X'][:]
+        y[offset:offset + n] = d['y'][:]
+        offset += n
+        del d
+        gc.collect()
+        os.remove(tp)  # free disk immediately, don't wait for the final rmtree
+    X.flush()
+    np.save(y_path, y)
+
+    print(f"\n{'='*50}")
+    print(f"Patient {patient_id} — long-context dataset (window_samples={window_samples})")
+    print(f"  Total windows  : {len(X)}")
+    print(f"  Seizure windows: {y.sum()} ({100*y.mean():.2f}%)")
+    print(f"  Window shape   : {X[0].shape}  (channels={X.shape[1]}, "
+          f"samples={X.shape[2]}, feature_channels={X.shape[3]})")
+    print(f"\nLong-context windows saved: {X_path}, {y_path}")
+
+    import sys as _sys
+    _sys.path.insert(0, '.')
+    from src.manifest import write_manifest
+    write_manifest(
+        X_path,
+        patient=patient_id,
+        window_s=window_s,
+        window_samples=window_samples,
+        longctx_lookback_s=longctx_lookback_s,
+        n_windows=int(total_n),
+        n_seizure_windows=int(y.sum()),
+    )
+    print(f"Manifest saved: {X_path}.manifest.json")
+
+    import shutil as _shutil
+    _shutil.rmtree(tmp_dir)
+
+    return X, y
+
 
 if __name__ == '__main__':
     import argparse
@@ -355,15 +576,36 @@ if __name__ == '__main__':
                         help='Patient ID (e.g. chb01, chb02)')
     parser.add_argument('--data-dir', default='data/raw/chbmit/physionet.org/files/chbmit/1.0.0/')
     parser.add_argument('--output-dir', default='data/processed/')
+    # ── Gate 1 (long-context channels) ────────────────────────────────────
+    parser.add_argument('--longctx', action='store_true',
+                        help='Build the 3-channel long-context dataset '
+                             '(rolling line-length + rolling delta/beta '
+                             'ratio) instead of the 1-channel baseline.')
+    parser.add_argument('--window-s', type=float, default=2.0,
+                        help='Window length in seconds. Only used with '
+                             '--longctx.')
+    parser.add_argument('--longctx-lookback-s', type=float, default=12.0,
+                        help='Causal lookback in seconds for both '
+                             'long-context channels. Only used with --longctx.')
     args = parser.parse_args()
 
     patient_dir = os.path.join(args.data_dir, args.patient)
     assert os.path.exists(patient_dir), \
         f"Patient directory not found: {patient_dir}"
 
-    X, y = build_patient_dataset(
-        patient_dir=patient_dir,
-        patient_id=args.patient,
-        output_dir=args.output_dir
-    )
-    print("\nPreprocessing complete.")
+    if args.longctx:
+        X, y = build_patient_dataset_longctx(
+            patient_dir=patient_dir,
+            patient_id=args.patient,
+            output_dir=args.output_dir,
+            window_s=args.window_s,
+            longctx_lookback_s=args.longctx_lookback_s,
+        )
+        print("\nLong-context preprocessing complete.")
+    else:
+        X, y = build_patient_dataset(
+            patient_dir=patient_dir,
+            patient_id=args.patient,
+            output_dir=args.output_dir
+        )
+        print("\nPreprocessing complete.")
