@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi",
+  "patient": "multi",
+  "eval_patient": "chb15",
+  "variant": "dann_lambda0.1",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 1024,
+  "eval_set": "test",
+  "n_eval": 21600,
+  "n_seizure": 592,
+  "sensitivity": 0.0169,
+  "specificity": 0.9977,
+  "fpr_per_hour": 4.2,
+  "f1": 0.0307
+}
