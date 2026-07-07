@@ -6,3 +6,4 @@ results/retrain_chb15_s123_log.txt
 data/
 __pycache__/
 *.egg-info/
+*.bak
