@@ -121,9 +121,12 @@ print(f"\nSDK stats: fps={stats.fps:.1f}  clk={stats.inference_clk}")
 
 # ── 5. Helper ─────────────────────────────────────────────────────────────────
 def _apply(spike_counts, threshold, smooth_k):
-    total = spike_counts.sum(axis=1)
-    with np.errstate(invalid='ignore', divide='ignore'):
-        ratio = np.where(total > 0, spike_counts[:, 1] / total, 0.0)
+    # Sign-safe sigmoid-of-margin (matches eval_event_level.py's fix) --
+    # the old ratio=count1/total formula silently inverts the decision
+    # whenever total<0, since spike_counts are signed potentials, not
+    # guaranteed non-negative spike counts.
+    margin = spike_counts[:, 1] - spike_counts[:, 0]
+    ratio = 1.0 / (1.0 + np.exp(-margin))
     raw = (ratio >= threshold).astype(np.int32)
     if smooth_k > 1:
         from src.evaluation.sliding_vote import sliding_majority_vote
