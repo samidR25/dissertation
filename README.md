@@ -35,7 +35,7 @@ The project is framed around two complementary, separately-evaluated questions r
 | Collapse-FAIL rate | **7/15 (47%)** | A reportable finding in its own right, not just a filter |
 | Gap vs. Ali et al. (2024) comparator | +0.265 below their 72–75% midpoint | RF + hand-crafted features, different eval protocol — see caveat in LOPO section |
 
-> Both C2 and LOPO results are reported as full metric bundles (event sensitivity, window specificity, FP/hr, collapse diagnostic) — never sensitivity alone. See `Methodology_ledger_consolidated.md` for the full disclosure discipline this project follows.
+> Both C2 and LOPO results are reported as full metric bundles (event sensitivity, window specificity, FP/hr, collapse diagnostic) — never sensitivity alone. Full disclosure discipline documented in the Methodology Ledger (Obsidian vault, not committed to this repo).
 
 ---
 
@@ -129,7 +129,7 @@ During development, **23 previously undocumented AKD1000 v1 hardware constraints
 - `per_tensor_activations=True` mandatory in QuantizationParams
 - `numpy >= 2.0` required (not `< 2.0` as stated in some older docs)
 
-See [`Akd1000_v1_architecture_constraints.md`](Akd1000_v1_architecture_constraints.md) for the full list.
+See [`Akd1000_v1_architecture_constraints.md`](Akd1000_v1_architecture_constraints.md) for the full list. (Note: that document's own recorded param count, 137,314, predates this session's confirmed 137,826 — worth reconciling before citing either number in the dissertation.)
 
 ---
 
