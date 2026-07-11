@@ -67,7 +67,25 @@ parser.add_argument('--scaler-source', default=None,
                          "or a pool scaler JSON with a 'per_patient' map "
                          "(e.g. multi_scaler.json) — the eval patient's own "
                          "entry is looked up automatically in the latter case.")
+parser.add_argument('--lopo-full',      action='store_true',
+                    help="Supervisor-directed LOPO session, 9 July 2026: "
+                         "evaluate on the held-out patient's FULL recording "
+                         "(data/processed/<patient>_dataset_lopo_full.npz, "
+                         "from build_lopo_eval_set.py) instead of the "
+                         "chronological 15% test slice. Matches standard "
+                         "LOPO methodology and the Ali et al. (2024) "
+                         "comparator directly. Mutually exclusive with "
+                         "--longctx/--g-features.")
 parser.add_argument('--longctx',        action='store_true')
+parser.add_argument('--eval-batch-size', type=int, default=8000,
+                    help="Fix, 10 July 2026 LOPO session: windows per "
+                         "akida_model.predict() call. The simulator's peak "
+                         "memory scales with batch size, so an unbatched "
+                         "call on a full-recording eval set (200k+ windows) "
+                         "OOM-killed the process for several patients. "
+                         "Default 8000 keeps peak memory well bounded "
+                         "regardless of eval-set size; lower it further if "
+                         "a future patient still OOMs.")
 parser.add_argument('--window-samples', type=int, default=512, choices=[512, 768])
 parser.add_argument('--g-features',     action='store_true',
                     help='Evaluate a Candidate G checkpoint (relative-band-'
@@ -136,16 +154,22 @@ if args.force_scaler_mismatch and not args.scaler_source:
                  'there is no mismatch to force past without an override '
                  'scaler in the first place.')
 
-if args.longctx and args.g_features:
-    sys.exit("ERROR: --longctx and --g-features are mutually exclusive.")
+if sum([args.longctx, args.g_features, args.lopo_full]) > 1:
+    sys.exit("ERROR: --longctx, --g-features, and --lopo-full are mutually "
+             "exclusive.")
 if args.longctx:
     data_path = (f'data/processed/{args.eval_patient}_dataset_longctx_w'
                  f'{args.window_samples}.npz')
 elif args.g_features:
     data_path = f'data/processed/{args.eval_patient}_dataset_g.npz'
+elif args.lopo_full:
+    data_path = f'data/processed/{args.eval_patient}_dataset_lopo_full.npz'
 else:
     data_path = f'data/processed/{args.eval_patient}_dataset_ann.npz'
-assert os.path.exists(data_path), f"Dataset not found: {data_path}"
+assert os.path.exists(data_path), (
+    f"Dataset not found: {data_path}"
+    + ("\nRun: python3 src/preprocessing/build_lopo_eval_set.py "
+       f"--patient {args.eval_patient}" if args.lopo_full else ""))
 
 print(f"Model        : {args.fbz}")
 print(f"Eval patient : {args.eval_patient}")
@@ -157,9 +181,9 @@ akida_model = akida.Model(args.fbz)
 data = np.load(data_path)
 assert 'X_test' in data.files, f"{data_path} has no X_test split"
 if args.longctx or args.g_features:
-    X_eval = data['X_test'].astype('float32')
+    X_eval = data['X_test'].astype('float32', copy=False)
 else:
-    X_eval = data['X_test'][..., np.newaxis].astype('float32')
+    X_eval = data['X_test'][..., np.newaxis].astype('float32', copy=False)
 y_eval = data['y_test']
 print(f"Eval set     : {len(y_eval)} windows, {int(y_eval.sum())} seizure windows")
 
@@ -278,7 +302,14 @@ def _score_windows(X, label):
     pass is byte-for-byte unchanged from before this patch.
     """
     print(f"\nRunning SNN simulator inference ({label})...")
-    preds_raw = akida_model.predict(X)
+    # Batched (fix, 10 July 2026 LOPO session) -- see module docstring of
+    # apply_lopo_eval_batching_patch.py for why this was necessary.
+    _batch = args.eval_batch_size
+    _preds_parts = []
+    for _start in range(0, len(X), _batch):
+        _preds_parts.append(akida_model.predict(X[_start:_start + _batch]))
+    preds_raw = np.concatenate(_preds_parts, axis=0)
+    del _preds_parts
     spike_counts = preds_raw.squeeze()  # (N,1,1,C) -> (N,C)
     # spike_counts are signed potentials (unconstrained final Dense readout),
     # not guaranteed non-negative spike counts. The old ratio=count1/total

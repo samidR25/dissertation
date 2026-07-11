@@ -419,6 +419,16 @@ parser.add_argument('--finetune-from',    default=None,
                     help="Patient tag or 'multi' — loads best_ann_<tag>_v2.h5 as base")
 parser.add_argument('--multi-patient',    action='store_true',
                     help="Train on pooled multi-patient dataset (multi_dataset_ann.npz)")
+parser.add_argument('--pool-tag', default=None,
+                    help="LOPO fold tag (supervisor-directed session, 9 July "
+                         "2026). Requires --multi-patient. When set, loads "
+                         "data/processed/multi_<pool-tag>_dataset_ann.npz "
+                         "instead of the fixed 3-patient multi_dataset_ann.npz, "
+                         "and tags all outputs 'multi_<pool-tag>' instead of "
+                         "'multi' -- e.g. --pool-tag lopo_chb10 trains from "
+                         "build_dataset_lopo_fold.py's chb10-held-out pool "
+                         "and saves results/best_ann_multi_lopo_chb10_v2.h5. "
+                         "Default None = unchanged existing behaviour.")
 parser.add_argument('--gradual-unfreeze', action='store_true',
                     help="3-phase gradual unfreezing (requires --finetune-from)")
 parser.add_argument('--freeze-depth', type=int, default=None,
@@ -557,10 +567,12 @@ if args.window_samples != 512 and not args.longctx:
 
 # Derive tag used in file names
 # new:
+if args.pool_tag and not args.multi_patient:
+    parser.error('--pool-tag requires --multi-patient')
 if args.multi_patient and args.finetune_from:
     patient_tag = f'multi_from_{args.finetune_from}'
 elif args.multi_patient:
-    patient_tag = 'multi'
+    patient_tag = f'multi_{args.pool_tag}' if args.pool_tag else 'multi'
 else:
     patient_tag = args.patient
 if args.stft:
@@ -578,7 +590,9 @@ if gpus:
 print(f"Training on: {gpus[0].name if gpus else 'CPU (no GPU found)'}")
 
 # ── 1. Load data ───────────────────────────────────────────────────────────────
-if args.multi_patient:
+if args.multi_patient and args.pool_tag:
+    data_path = f'data/processed/multi_{args.pool_tag}_dataset_ann.npz'
+elif args.multi_patient:
     data_path = 'data/processed/multi_dataset_ann.npz'
 else:
     data_path = f'data/processed/{args.patient}_dataset_ann.npz'
