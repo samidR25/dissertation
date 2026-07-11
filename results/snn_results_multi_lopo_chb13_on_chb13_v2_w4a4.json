@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_lopo_chb13",
+  "patient": "multi_lopo_chb13",
+  "eval_patient": "chb13",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 17816,
+  "n_seizure": 294,
+  "sensitivity": 0.7653,
+  "specificity": 0.7322,
+  "fpr_per_hour": 482.0,
+  "f1": 0.0864
+}

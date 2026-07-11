@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_lopo_chb19",
+  "patient": "multi_lopo_chb19",
+  "eval_patient": "chb19",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 16158,
+  "n_seizure": 239,
+  "sensitivity": 0.1925,
+  "specificity": 0.8481,
+  "fpr_per_hour": 273.41,
+  "f1": 0.034
+}

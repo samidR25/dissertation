@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_lopo_chb02",
+  "patient": "multi_lopo_chb02",
+  "eval_patient": "chb02",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "train (no test seizures)",
+  "n_eval": 500,
+  "n_seizure": 0,
+  "sensitivity": null,
+  "specificity": null,
+  "fpr_per_hour": null,
+  "f1": null
+}

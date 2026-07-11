@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_lopo_chb10",
+  "patient": "multi_lopo_chb10",
+  "eval_patient": "chb10",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 27009,
+  "n_seizure": 281,
+  "sensitivity": 0.8114,
+  "specificity": 0.9765,
+  "fpr_per_hour": 42.36,
+  "f1": 0.4007
+}

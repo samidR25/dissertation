@@ -1,0 +1,449 @@
+=== Sat Jul 11 02:07:01 UTC 2026 fold chb18 ===
+Disk before fold: 26G avail (90% used)
+--- [1/4] build_dataset_lopo_fold.py ---
+LOPO fold        : held out = chb18
+Pool patients (14): ['chb01', 'chb02', 'chb03', 'chb05', 'chb06', 'chb07', 'chb09', 'chb10', 'chb11', 'chb13', 'chb15', 'chb16', 'chb19', 'chb20']
+Undersample ratio: 5:1  (non-seizure:seizure)
+
+  chb01: FULL recording, total=145946 (seizure=449, 0.308%)
+          -> undersampled: 2694 windows (seizure=449, non-sz=2245)
+  chb02: FULL recording, total=126923 (seizure=175, 0.138%)
+          -> undersampled: 1050 windows (seizure=175, non-sz=875)
+  chb03: FULL recording, total=136768 (seizure=409, 0.299%)
+          -> undersampled: 2454 windows (seizure=409, non-sz=2045)
+  chb05: FULL recording, total=140371 (seizure=563, 0.401%)
+          -> undersampled: 3378 windows (seizure=563, non-sz=2815)
+  chb06: FULL recording, total=240228 (seizure=163, 0.068%)
+          -> undersampled: 978 windows (seizure=163, non-sz=815)
+  chb07: FULL recording, total=241369 (seizure=328, 0.136%)
+          -> undersampled: 1968 windows (seizure=328, non-sz=1640)
+  chb09: FULL recording, total=244319 (seizure=280, 0.115%)
+          -> undersampled: 1680 windows (seizure=280, non-sz=1400)
+  chb10: FULL recording, total=180059 (seizure=454, 0.252%)
+          -> undersampled: 2724 windows (seizure=454, non-sz=2270)
+  chb11: FULL recording, total=125222 (seizure=809, 0.646%)
+          -> undersampled: 4854 windows (seizure=809, non-sz=4045)
+  chb13: FULL recording, total=118767 (seizure=547, 0.461%)
+          -> undersampled: 3282 windows (seizure=547, non-sz=2735)
+  chb15: FULL recording, total=143996 (seizure=2012, 1.397%)
+          -> undersampled: 12072 windows (seizure=2012, non-sz=10060)
+  chb16: FULL recording, total=68381 (seizure=94, 0.137%)
+          -> undersampled: 564 windows (seizure=94, non-sz=470)
+  chb19: FULL recording, total=107716 (seizure=239, 0.222%)
+          -> undersampled: 1434 windows (seizure=239, non-sz=1195)
+  chb20: FULL recording, total=99337 (seizure=302, 0.304%)
+          -> undersampled: 1812 windows (seizure=302, non-sz=1510)
+
+Pooled (before SMOTE): train=32751 (seizure=5458)  val=8193 (seizure=1366, real, untouched by SMOTE)
+  Domain 0 (chb01): 2155 real -> 3592 post-SMOTE (seizure=1796)
+  Domain 1 (chb02): 840 real -> 1400 post-SMOTE (seizure=700)
+  Domain 2 (chb03): 1963 real -> 3272 post-SMOTE (seizure=1636)
+  Domain 3 (chb05): 2702 real -> 4504 post-SMOTE (seizure=2252)
+  Domain 4 (chb06): 782 real -> 1304 post-SMOTE (seizure=652)
+  Domain 5 (chb07): 1574 real -> 2624 post-SMOTE (seizure=1312)
+  Domain 6 (chb09): 1344 real -> 2240 post-SMOTE (seizure=1120)
+  Domain 7 (chb10): 2179 real -> 3632 post-SMOTE (seizure=1816)
+  Domain 8 (chb11): 3883 real -> 6472 post-SMOTE (seizure=3236)
+  Domain 9 (chb13): 2625 real -> 4374 post-SMOTE (seizure=2187)
+  Domain 10 (chb15): 9657 real -> 16094 post-SMOTE (seizure=8047)
+  Domain 11 (chb16): 451 real -> 752 post-SMOTE (seizure=376)
+  Domain 12 (chb19): 1147 real -> 1912 post-SMOTE (seizure=956)
+  Domain 13 (chb20): 1449 real -> 2414 post-SMOTE (seizure=1207)
+
+After per-domain SMOTE: 54586 windows total (seizure=27293, 50.0%)
+
+Saved  : data/processed/multi_lopo_chb18_dataset_ann.npz
+X_train: (54586, 18, 512)  range=[0.0, 255.0]
+y_train: seizure=27293 (50.0%)
+X_val  : (8193, 18, 512)  seizure=1366 (16.7%)  (real)
+Saved  : data/processed/multi_lopo_chb18_scaler.json
+
+✓ Sanity checks passed
+-> Next: python3 src/models/train_baseline.py --model-version 2 --multi-patient --pool-tag lopo_chb18
+
+real	3m30.087s
+user	2m11.043s
+sys	0m49.373s
+--- [2/4] build_lopo_eval_set.py (skip if already built) ---
+Patient       : chb18
+Full recording: 128249 windows (seizure=323, 0.252%)
+Scaler        : data/processed/chb18_scaler.json (scale=143106.3371, shift=130.87)
+Output buffer : ~4.40GiB (unavoidable floor -- this is the final array size, not a temporary; if THIS alone doesn't fit in RAM, --chunk-size won't help and uint8 storage would be the next lever, since the scaled range is exactly [0,255])
+  scaled 5000/128249 windows...
+  scaled 55000/128249 windows...
+  scaled 105000/128249 windows...
+
+Saved  : data/processed/chb18_dataset_lopo_full.npz
+X_test : (128249, 18, 512)  range=[0.0, 255.0]
+y_test : seizure=323 (0.252%)
+
+✓ Sanity checks passed
+
+real	5m2.657s
+user	4m28.749s
+sys	0m17.184s
+--- [3/4] train_baseline.py --pool-tag lopo_chb18 ---
+Random seed: 42
+Training on: /physical_device:GPU:0
+
+Dataset: data/processed/multi_lopo_chb18_dataset_ann.npz
+  Train :  54586  seizure=27293 (50.0%)
+  Val   :   8193  seizure=1366 (16.7%)  (real, pre-SMOTE split)
+
+Building new model (v2)
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 2s 2s/step
+AKD1000 v1 compatible ✓
+  Model: "seizure_cnn_v2"
+  _________________________________________________________________
+   Layer (type)                Output Shape              Param #   
+  =================================================================
+   eeg_input (InputLayer)      [(None, 18, 512, 1)]      0         
+                                                                   
+   rescaling (Rescaling)       (None, 18, 512, 1)        0         
+                                                                   
+   conv1 (Conv2D)              (None, 10, 127, 32)       2016      
+                                                                   
+   bn1 (BatchNormalization)    (None, 10, 127, 32)       128       
+                                                                   
+   pool1 (MaxPooling2D)        (None, 10, 63, 32)        0         
+                                                                   
+   relu1 (ReLU)                (None, 10, 63, 32)        0         
+                                                                   
+   conv2 (Conv2D)              (None, 10, 63, 64)        18432     
+                                                                   
+   bn2 (BatchNormalization)    (None, 10, 63, 64)        256       
+                                                                   
+   pool2 (MaxPooling2D)        (None, 5, 32, 64)         0         
+                                                                   
+   relu2 (ReLU)                (None, 5, 32, 64)         0         
+                                                                   
+   conv3 (Conv2D)              (None, 5, 32, 32)         18432     
+                                                                   
+   bn3 (BatchNormalization)    (None, 5, 32, 32)         128       
+                                                                   
+   pool3 (MaxPooling2D)        (None, 3, 16, 32)         0         
+                                                                   
+   relu3 (ReLU)                (None, 3, 16, 32)         0         
+                                                                   
+   flatten (Flatten)           (None, 1536)              0         
+                                                                   
+   dense1 (Dense)              (None, 64)                98304     
+                                                                   
+   relu_dense (ReLU)           (None, 64)                0         
+                                                                   
+   output (Dense)              (None, 2)                 130       
+                                                                   
+  =================================================================
+  Total params: 137826 (538.38 KB)
+  Trainable params: 137570 (537.38 KB)
+  Non-trainable params: 256 (1.00 KB)
+  _________________________________________________________________
+Epoch 1/100
+
+Epoch 1: val_loss improved from inf to 0.56631, saving model to results/best_ann_multi_lopo_chb18_v2.h5
+1706/1706 - 22s - loss: 0.3889 - accuracy: 0.8506 - val_loss: 0.5663 - val_accuracy: 0.7951 - lr: 0.0010 - 22s/epoch - 13ms/step
+Epoch 2/100
+
+Epoch 2: val_loss did not improve from 0.56631
+1706/1706 - 18s - loss: 0.1639 - accuracy: 0.9504 - val_loss: 2.2075 - val_accuracy: 0.2459 - lr: 0.0010 - 18s/epoch - 11ms/step
+Epoch 3/100
+
+Epoch 3: val_loss improved from 0.56631 to 0.42736, saving model to results/best_ann_multi_lopo_chb18_v2.h5
+1706/1706 - 18s - loss: 0.1112 - accuracy: 0.9672 - val_loss: 0.4274 - val_accuracy: 0.8709 - lr: 0.0010 - 18s/epoch - 10ms/step
+Epoch 4/100
+
+Epoch 4: val_loss did not improve from 0.42736
+1706/1706 - 19s - loss: 0.0852 - accuracy: 0.9750 - val_loss: 0.5238 - val_accuracy: 0.8657 - lr: 0.0010 - 19s/epoch - 11ms/step
+Epoch 5/100
+
+Epoch 5: val_loss did not improve from 0.42736
+1706/1706 - 17s - loss: 0.0696 - accuracy: 0.9802 - val_loss: 3.3769 - val_accuracy: 0.2412 - lr: 0.0010 - 17s/epoch - 10ms/step
+Epoch 6/100
+
+Epoch 6: val_loss did not improve from 0.42736
+1706/1706 - 18s - loss: 0.0602 - accuracy: 0.9826 - val_loss: 4.5555 - val_accuracy: 0.2171 - lr: 0.0010 - 18s/epoch - 11ms/step
+Epoch 7/100
+
+Epoch 7: val_loss did not improve from 0.42736
+1706/1706 - 18s - loss: 0.0509 - accuracy: 0.9859 - val_loss: 0.7701 - val_accuracy: 0.7276 - lr: 0.0010 - 18s/epoch - 10ms/step
+Epoch 8/100
+
+Epoch 8: val_loss did not improve from 0.42736
+1706/1706 - 18s - loss: 0.0417 - accuracy: 0.9889 - val_loss: 2.2691 - val_accuracy: 0.3555 - lr: 0.0010 - 18s/epoch - 11ms/step
+Epoch 9/100
+
+Epoch 9: val_loss did not improve from 0.42736
+1706/1706 - 17s - loss: 0.0397 - accuracy: 0.9893 - val_loss: 1.3236 - val_accuracy: 0.6398 - lr: 0.0010 - 17s/epoch - 10ms/step
+Epoch 10/100
+
+Epoch 10: val_loss did not improve from 0.42736
+
+Epoch 10: ReduceLROnPlateau reducing learning rate to 0.0005000000237487257.
+1706/1706 - 18s - loss: 0.0349 - accuracy: 0.9905 - val_loss: 3.5960 - val_accuracy: 0.2866 - lr: 0.0010 - 18s/epoch - 11ms/step
+Epoch 11/100
+
+Epoch 11: val_loss improved from 0.42736 to 0.21305, saving model to results/best_ann_multi_lopo_chb18_v2.h5
+1706/1706 - 18s - loss: 0.0152 - accuracy: 0.9964 - val_loss: 0.2130 - val_accuracy: 0.9342 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 12/100
+
+Epoch 12: val_loss did not improve from 0.21305
+1706/1706 - 17s - loss: 0.0152 - accuracy: 0.9962 - val_loss: 1.1990 - val_accuracy: 0.5724 - lr: 5.0000e-04 - 17s/epoch - 10ms/step
+Epoch 13/100
+
+Epoch 13: val_loss did not improve from 0.21305
+1706/1706 - 18s - loss: 0.0151 - accuracy: 0.9963 - val_loss: 0.5631 - val_accuracy: 0.8006 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 14/100
+
+Epoch 14: val_loss did not improve from 0.21305
+1706/1706 - 18s - loss: 0.0138 - accuracy: 0.9968 - val_loss: 0.7577 - val_accuracy: 0.8064 - lr: 5.0000e-04 - 18s/epoch - 10ms/step
+Epoch 15/100
+
+Epoch 15: val_loss did not improve from 0.21305
+1706/1706 - 19s - loss: 0.0140 - accuracy: 0.9965 - val_loss: 0.3417 - val_accuracy: 0.9174 - lr: 5.0000e-04 - 19s/epoch - 11ms/step
+Epoch 16/100
+
+Epoch 16: val_loss improved from 0.21305 to 0.15970, saving model to results/best_ann_multi_lopo_chb18_v2.h5
+1706/1706 - 18s - loss: 0.0125 - accuracy: 0.9969 - val_loss: 0.1597 - val_accuracy: 0.9635 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 17/100
+
+Epoch 17: val_loss did not improve from 0.15970
+1706/1706 - 18s - loss: 0.0122 - accuracy: 0.9972 - val_loss: 0.8585 - val_accuracy: 0.9004 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 18/100
+
+Epoch 18: val_loss did not improve from 0.15970
+1706/1706 - 18s - loss: 0.0126 - accuracy: 0.9970 - val_loss: 0.5315 - val_accuracy: 0.9329 - lr: 5.0000e-04 - 18s/epoch - 10ms/step
+Epoch 19/100
+
+Epoch 19: val_loss did not improve from 0.15970
+1706/1706 - 17s - loss: 0.0094 - accuracy: 0.9979 - val_loss: 0.6768 - val_accuracy: 0.8156 - lr: 5.0000e-04 - 17s/epoch - 10ms/step
+Epoch 20/100
+
+Epoch 20: val_loss did not improve from 0.15970
+1706/1706 - 18s - loss: 0.0111 - accuracy: 0.9973 - val_loss: 0.4949 - val_accuracy: 0.9175 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 21/100
+
+Epoch 21: val_loss did not improve from 0.15970
+1706/1706 - 17s - loss: 0.0094 - accuracy: 0.9978 - val_loss: 0.7835 - val_accuracy: 0.9148 - lr: 5.0000e-04 - 17s/epoch - 10ms/step
+Epoch 22/100
+
+Epoch 22: val_loss did not improve from 0.15970
+1706/1706 - 18s - loss: 0.0107 - accuracy: 0.9973 - val_loss: 0.2183 - val_accuracy: 0.9596 - lr: 5.0000e-04 - 18s/epoch - 11ms/step
+Epoch 23/100
+
+Epoch 23: val_loss did not improve from 0.15970
+
+Epoch 23: ReduceLROnPlateau reducing learning rate to 0.0002500000118743628.
+1706/1706 - 18s - loss: 0.0083 - accuracy: 0.9980 - val_loss: 1.8588 - val_accuracy: 0.8350 - lr: 5.0000e-04 - 18s/epoch - 10ms/step
+Epoch 24/100
+
+Epoch 24: val_loss improved from 0.15970 to 0.12517, saving model to results/best_ann_multi_lopo_chb18_v2.h5
+1706/1706 - 18s - loss: 0.0050 - accuracy: 0.9989 - val_loss: 0.1252 - val_accuracy: 0.9758 - lr: 2.5000e-04 - 18s/epoch - 11ms/step
+Epoch 25/100
+
+Epoch 25: val_loss did not improve from 0.12517
+1706/1706 - 17s - loss: 0.0052 - accuracy: 0.9989 - val_loss: 0.2366 - val_accuracy: 0.9452 - lr: 2.5000e-04 - 17s/epoch - 10ms/step
+Epoch 26/100
+
+Epoch 26: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 0.0040 - accuracy: 0.9990 - val_loss: 0.1588 - val_accuracy: 0.9690 - lr: 2.5000e-04 - 18s/epoch - 10ms/step
+Epoch 27/100
+
+Epoch 27: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 0.0046 - accuracy: 0.9989 - val_loss: 0.2104 - val_accuracy: 0.9591 - lr: 2.5000e-04 - 18s/epoch - 10ms/step
+Epoch 28/100
+
+Epoch 28: val_loss did not improve from 0.12517
+1706/1706 - 17s - loss: 0.0037 - accuracy: 0.9990 - val_loss: 0.2416 - val_accuracy: 0.9550 - lr: 2.5000e-04 - 17s/epoch - 10ms/step
+Epoch 29/100
+
+Epoch 29: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 0.0034 - accuracy: 0.9991 - val_loss: 0.8206 - val_accuracy: 0.7995 - lr: 2.5000e-04 - 18s/epoch - 11ms/step
+Epoch 30/100
+
+Epoch 30: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 0.0031 - accuracy: 0.9992 - val_loss: 0.1878 - val_accuracy: 0.9689 - lr: 2.5000e-04 - 18s/epoch - 10ms/step
+Epoch 31/100
+
+Epoch 31: val_loss did not improve from 0.12517
+
+Epoch 31: ReduceLROnPlateau reducing learning rate to 0.0001250000059371814.
+1706/1706 - 18s - loss: 0.0032 - accuracy: 0.9991 - val_loss: 0.4063 - val_accuracy: 0.9307 - lr: 2.5000e-04 - 18s/epoch - 11ms/step
+Epoch 32/100
+
+Epoch 32: val_loss did not improve from 0.12517
+1706/1706 - 17s - loss: 0.0016 - accuracy: 0.9994 - val_loss: 0.1518 - val_accuracy: 0.9763 - lr: 1.2500e-04 - 17s/epoch - 10ms/step
+Epoch 33/100
+
+Epoch 33: val_loss did not improve from 0.12517
+1706/1706 - 19s - loss: 0.0012 - accuracy: 0.9997 - val_loss: 0.1470 - val_accuracy: 0.9766 - lr: 1.2500e-04 - 19s/epoch - 11ms/step
+Epoch 34/100
+
+Epoch 34: val_loss did not improve from 0.12517
+1706/1706 - 17s - loss: 0.0016 - accuracy: 0.9995 - val_loss: 0.4964 - val_accuracy: 0.9077 - lr: 1.2500e-04 - 17s/epoch - 10ms/step
+Epoch 35/100
+
+Epoch 35: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 8.0683e-04 - accuracy: 0.9998 - val_loss: 0.3219 - val_accuracy: 0.9441 - lr: 1.2500e-04 - 18s/epoch - 10ms/step
+Epoch 36/100
+
+Epoch 36: val_loss did not improve from 0.12517
+1706/1706 - 19s - loss: 0.0015 - accuracy: 0.9995 - val_loss: 0.1664 - val_accuracy: 0.9756 - lr: 1.2500e-04 - 19s/epoch - 11ms/step
+Epoch 37/100
+
+Epoch 37: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 5.3444e-04 - accuracy: 0.9999 - val_loss: 0.1521 - val_accuracy: 0.9773 - lr: 1.2500e-04 - 18s/epoch - 11ms/step
+Epoch 38/100
+
+Epoch 38: val_loss did not improve from 0.12517
+
+Epoch 38: ReduceLROnPlateau reducing learning rate to 6.25000029685907e-05.
+1706/1706 - 18s - loss: 9.7246e-04 - accuracy: 0.9998 - val_loss: 0.1442 - val_accuracy: 0.9786 - lr: 1.2500e-04 - 18s/epoch - 11ms/step
+Epoch 39/100
+
+Epoch 39: val_loss did not improve from 0.12517
+1706/1706 - 18s - loss: 9.5477e-04 - accuracy: 0.9998 - val_loss: 0.1379 - val_accuracy: 0.9782 - lr: 6.2500e-05 - 18s/epoch - 11ms/step
+Epoch 39: early stopping
+Restoring model weights from the end of the best epoch: 24.
+
+  train: sens=0.9996  spec=0.9985  FPR/hr=2.64
+
+  val  : sens=0.9400  spec=0.9830  FPR/hr=30.58
+
+Saved: results/ann_results_multi_lopo_chb18_v2.json
+Model: results/best_ann_multi_lopo_chb18_v2.h5
+Manifest saved: results/best_ann_multi_lopo_chb18_v2.h5.manifest.json
+I0000 00:00:1783736186.563954  782523 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 3582 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 3060 Laptop GPU, pci bus id: 0000:01:00.0, compute capability: 8.6
+I0000 00:00:1783736194.588287  782617 cuda_dnn.cc:529] Loaded cuDNN version 90300
+I0000 00:00:1783736220.932822  782609 service.cc:152] XLA service 0x7c6ccf34ca10 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1783736220.932865  782609 service.cc:160]   StreamExecutor device (0): NVIDIA GeForce RTX 3060 Laptop GPU, Compute Capability 8.6
+I0000 00:00:1783736221.149855  782609 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+
+real	16m50.190s
+user	13m35.529s
+sys	5m59.286s
+--- [4/4] convert_to_snn.py + eval_event_level.py --lopo-full ---
+Random seed: 42
+ANN checkpoint : results/best_ann_multi_lopo_chb18_v2.h5
+Calibration    : data/processed/multi_lopo_chb18_dataset_ann.npz (256 samples)
+Eval patient   : chb18
+Output SNN     : results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz
+
+Loading float model: results/best_ann_multi_lopo_chb18_v2.h5
+  Model: "seizure_cnn_v2"
+  _________________________________________________________________
+   Layer (type)                Output Shape              Param #   
+  =================================================================
+   eeg_input (InputLayer)      [(None, 18, 512, 1)]      0         
+                                                                   
+   rescaling (Rescaling)       (None, 18, 512, 1)        0         
+                                                                   
+   conv1 (Conv2D)              (None, 10, 127, 32)       2016      
+                                                                   
+   bn1 (BatchNormalization)    (None, 10, 127, 32)       128       
+                                                                   
+   pool1 (MaxPooling2D)        (None, 10, 63, 32)        0         
+                                                                   
+   relu1 (ReLU)                (None, 10, 63, 32)        0         
+                                                                   
+   conv2 (Conv2D)              (None, 10, 63, 64)        18432     
+                                                                   
+   bn2 (BatchNormalization)    (None, 10, 63, 64)        256       
+                                                                   
+   pool2 (MaxPooling2D)        (None, 5, 32, 64)         0         
+                                                                   
+   relu2 (ReLU)                (None, 5, 32, 64)         0         
+                                                                   
+   conv3 (Conv2D)              (None, 5, 32, 32)         18432     
+                                                                   
+   bn3 (BatchNormalization)    (None, 5, 32, 32)         128       
+                                                                   
+   pool3 (MaxPooling2D)        (None, 3, 16, 32)         0         
+                                                                   
+   relu3 (ReLU)                (None, 3, 16, 32)         0         
+                                                                   
+   flatten (Flatten)           (None, 1536)              0         
+                                                                   
+   dense1 (Dense)              (None, 64)                98304     
+                                                                   
+   relu_dense (ReLU)           (None, 64)                0         
+                                                                   
+   output (Dense)              (None, 2)                 130       
+                                                                   
+  =================================================================
+  Total params: 137826 (538.38 KB)
+  Trainable params: 137570 (537.38 KB)
+  Non-trainable params: 256 (1.00 KB)
+  _________________________________________________________________
+
+Checking AKD1000 v1 compatibility...
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 0s 499ms/step
+AKD1000 v1 compatible ✓
+
+Calibration set: 256 windows (seizure: 128)
+
+Quantising (w4a4, per_tensor_activations=True)...
+   1/1024 [..............................] - ETA: 3:44  13/1024 [..............................] - ETA: 4s    25/1024 [..............................] - ETA: 4s  38/1024 [>.............................] - ETA: 4s  50/1024 [>.............................] - ETA: 4s  61/1024 [>.............................] - ETA: 4s  71/1024 [=>............................] - ETA: 4s  80/1024 [=>............................] - ETA: 4s  91/1024 [=>............................] - ETA: 4s 101/1024 [=>............................] - ETA: 4s 111/1024 [==>...........................] - ETA: 4s 122/1024 [==>...........................] - ETA: 4s 133/1024 [==>...........................] - ETA: 4s 144/1024 [===>..........................] - ETA: 4s 155/1024 [===>..........................] - ETA: 4s 164/1024 [===>..........................] - ETA: 4s 176/1024 [====>.........................] - ETA: 4s 186/1024 [====>.........................] - ETA: 4s 197/1024 [====>.........................] - ETA: 4s 207/1024 [=====>........................] - ETA: 4s 218/1024 [=====>........................] - ETA: 3s 228/1024 [=====>........................] - ETA: 3s 241/1024 [======>.......................] - ETA: 3s 253/1024 [======>.......................] - ETA: 3s1024/1024 [==============================] - 1s 1ms/step
+Quantisation complete ✓
+
+Converting to SNN (AkidaVersion.v1)...
+Manifest saved: results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz.manifest.json
+SNN saved: results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz
+
+SNN evaluation on test set (19238 windows)...
+  Sensitivity : 0.5477
+  Specificity : 0.6116
+  FPR / hour  : 699.08
+  F1          : 0.0341
+
+Saved: results/snn_results_multi_lopo_chb18_on_chb18_v2_w4a4.json
+SNN model: results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz
+
+Next: SCP the .fbz to the Pi and run run_on_akida.py
+I0000 00:00:1783737148.856559  858703 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 3582 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 3060 Laptop GPU, pci bus id: 0000:01:00.0, compute capability: 8.6
+I0000 00:00:1783737154.599897  858768 cuda_dnn.cc:529] Loaded cuDNN version 90300
+
+real	0m54.418s
+user	2m38.722s
+sys	0m11.386s
+Model        : results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz
+Eval patient : chb18
+Eval set     : 128249 windows, 323 seizure windows
+
+[Scaler] using data/processed/chb18_scaler.json as baked into the npz (no --scaler-source override given — unchanged default behaviour)
+
+[Gate 1b] NOTE: chb18 was never one of results/seizure_model_multi_lopo_chb18_v2_w4a4.fbz's pool constituents — no pool-relative scaler to check against. This is the normal cross-patient generalisation case (e.g. chb10), not the chb06 dual-scaler bug (which only applies to patients that played BOTH roles). Proceeding without a scaler check.
+
+Running SNN simulator inference (eval/test set)...
+
+[Item 4] Window-level AUPRC (threshold-independent): 0.0054
+
+=== Window-level (threshold=0.5) ===
+  Sensitivity : 0.6130
+  Specificity : 0.6961
+  FPR / hour  : 546.97
+
+=== Event-level (gap=60.0s, frac=0.3, sustained=3) ===
+  Event sensitivity : 1.0
+  Events detected   : 6/6
+  False positive events : 11
+  FP events / hour  : 0.30877433742173427
+  Total hours       : 35.62
+  Detection latency (s) : [0.0, 0.0, 0.0, 4.0, 0.0, 0.0]
+  Mean latency (s)      : 0.67
+  Undetected events     : 0
+
+=== Collapse diagnostic (Gate 0c, §4) ===
+  Positive-window fraction : 0.3046
+  Predicted blocks         : 13
+  Largest block fraction   : 0.3317
+  Verdict                  : FAIL
+    - window specificity 0.6961 < 0.9
+
+Saved: results/event_results_seizure_model_multi_lopo_chb18_v2_w4a4_on_chb18.json
+
+real	1m49.200s
+user	14m43.647s
+sys	0m9.783s
+=== fold chb18 DONE ===
+--- [cleanup] removing this fold's transient artifacts (regardless of outcome) ---
+Disk after cleanup: 26G avail (90% used)

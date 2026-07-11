@@ -1,0 +1,17 @@
+{
+  "base_tag": "multi_lopo_chb07",
+  "patient": "multi_lopo_chb07",
+  "eval_patient": "chb07",
+  "variant": null,
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "eval_set": "test",
+  "n_eval": 36206,
+  "n_seizure": 144,
+  "sensitivity": 0.5,
+  "specificity": 0.9979,
+  "fpr_per_hour": 3.74,
+  "f1": 0.4948
+}

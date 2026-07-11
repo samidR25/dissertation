@@ -1,0 +1,43 @@
+{
+  "fbz_path": "results/seizure_model_multi_lopo_chb10_v2_w4a4.fbz",
+  "eval_patient": "chb10",
+  "spike_threshold": 0.5,
+  "conformal": null,
+  "force_scaler_mismatch": false,
+  "scaler_source": "data/processed/chb10_scaler.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.0189,
+    "n_predicted_blocks": 759,
+    "largest_block_fraction": 0.0068,
+    "pass": true,
+    "reasons": []
+  },
+  "window_level": {
+    "sensitivity": 0.8392,
+    "specificity": 0.9832,
+    "fpr_per_hour": 30.33,
+    "auprc": 0.3591
+  },
+  "event_level": {
+    "event_sensitivity": 1.0,
+    "n_events": 7,
+    "n_detected": 7,
+    "false_positives": 394,
+    "fp_per_hour": 7.877417957447281,
+    "total_hours": 50.01638888888889,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [
+      2.0,
+      1.0,
+      0.0,
+      7.0,
+      6.0,
+      2.0,
+      7.0
+    ],
+    "mean_latency_s": 3.57,
+    "n_undetected": 0
+  }
+}

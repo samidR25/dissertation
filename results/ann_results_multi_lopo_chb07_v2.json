@@ -1,0 +1,18 @@
+{
+  "patient": "multi_lopo_chb07",
+  "model_version": 2,
+  "train": {
+    "n": 54546,
+    "n_seizure": 27273,
+    "sensitivity": 1.0,
+    "specificity": 0.9999,
+    "fpr_per_hour": 0.13
+  },
+  "val": {
+    "n": 8187,
+    "n_seizure": 1365,
+    "sensitivity": 0.9421,
+    "specificity": 0.9893,
+    "fpr_per_hour": 19.26
+  }
+}
