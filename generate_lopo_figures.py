@@ -53,6 +53,7 @@ plt.close(fig)
 
 # ── Figure 2: sensitivity vs FP/hr scatter, coloured by collapse PASS/FAIL ──
 fig, ax = plt.subplots(figsize=(6.5, 5))
+texts = []
 for r in rows:
     if r['event_sensitivity'] is None or r['fp_per_hour'] is None:
         continue
@@ -60,8 +61,25 @@ for r in rows:
     marker = 'o' if r['collapse_pass'] else 'x'
     ax.scatter(r['fp_per_hour'], r['event_sensitivity'], c=color, marker=marker,
                s=90, edgecolors='black' if r['collapse_pass'] else None, linewidths=0.8, zorder=3)
-    ax.annotate(r['patient'].replace('chb', ''), (r['fp_per_hour'], r['event_sensitivity']),
-                textcoords="offset points", xytext=(6, 3), fontsize=8)
+    texts.append(ax.text(r['fp_per_hour'], r['event_sensitivity'], r['patient'].replace('chb', ''),
+                          fontsize=8, zorder=4))
+
+# Several points sit close together at low FP/hr and at sensitivity==1.0
+# (chb05/chb18, chb13/chb07, chb06/chb03, chb11/chb10) -- plain fixed-offset
+# annotate() renders these as unreadable merged strings. adjustText nudges
+# overlapping labels apart automatically and draws a thin leader line back
+# to the true point so the association stays unambiguous.
+try:
+    from adjustText import adjust_text
+    adjust_text(texts, ax=ax,
+                arrowprops=dict(arrowstyle='-', color='gray', lw=0.5, alpha=0.7),
+                expand_points=(1.4, 1.6), force_points=(0.3, 0.4))
+except ImportError:
+    raise ImportError(
+        "adjustText is required to keep close-together point labels readable "
+        "(pip install adjustText --break-system-packages). Falling back to "
+        "overlapping fixed-offset labels would reintroduce the collision bug "
+        "this patch fixes.")
 ax.set_xlabel('False positives / hour')
 ax.set_ylabel('Event sensitivity')
 ax.set_title('Perfect sensitivity is often the collapse artefact, not detection')

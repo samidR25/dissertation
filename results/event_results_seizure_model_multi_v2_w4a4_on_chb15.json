@@ -2,33 +2,37 @@
   "fbz_path": "results/seizure_model_multi_v2_w4a4.fbz",
   "eval_patient": "chb15",
   "spike_threshold": 0.5,
+  "conformal": null,
+  "force_scaler_mismatch": false,
   "scaler_source": "data/processed/chb15_scaler.json",
   "collapse_diagnostic": {
-    "positive_window_fraction": 0.0011,
-    "n_predicted_blocks": 2,
-    "largest_block_fraction": 0.0036,
+    "positive_window_fraction": 0.0003,
+    "n_predicted_blocks": 9,
+    "largest_block_fraction": 0.0005,
     "pass": false,
     "reasons": [
-      "positive-window fraction 0.1065% is less than 10% of the true seizure-window rate (2.7407%) \u2014 likely under-firing collapse (model gone non-responsive), not genuine high specificity."
+      "positive-window fraction 0.0257% is less than 10% of the true seizure-window rate (1.3973%) \u2014 likely under-firing collapse (model gone non-responsive), not genuine high specificity."
     ]
   },
   "window_level": {
-    "sensitivity": 0.0,
-    "specificity": 0.9989,
-    "fpr_per_hour": 1.97
+    "sensitivity": 0.001,
+    "specificity": 0.9998,
+    "fpr_per_hour": 0.44,
+    "auprc": 0.0831,
+    "roc_auc": 0.8611
   },
   "event_level": {
     "event_sensitivity": 0.0,
-    "n_events": 7,
+    "n_events": 20,
     "n_detected": 0,
-    "false_positives": 2,
-    "fp_per_hour": 0.3333333333333333,
-    "total_hours": 6.0,
+    "false_positives": 5,
+    "fp_per_hour": 0.1250034723186755,
+    "total_hours": 39.99888888888889,
     "gap_tolerance_s": 60.0,
     "detection_fraction": 0.3,
     "min_sustained_windows": 3,
     "latencies_s": [],
     "mean_latency_s": null,
-    "n_undetected": 7
+    "n_undetected": 20
   }
 }

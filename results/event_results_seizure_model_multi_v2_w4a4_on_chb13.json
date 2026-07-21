@@ -2,38 +2,46 @@
   "fbz_path": "results/seizure_model_multi_v2_w4a4.fbz",
   "eval_patient": "chb13",
   "spike_threshold": 0.5,
+  "conformal": null,
+  "force_scaler_mismatch": false,
   "scaler_source": "data/processed/chb13_scaler.json",
   "collapse_diagnostic": {
-    "positive_window_fraction": 0.3433,
+    "positive_window_fraction": 0.4204,
     "n_predicted_blocks": 10,
-    "largest_block_fraction": 0.2896,
+    "largest_block_fraction": 0.4228,
     "pass": false,
     "reasons": [
-      "window specificity 0.6571 < 0.9"
+      "window specificity 0.5792 < 0.9"
     ]
   },
   "window_level": {
-    "sensitivity": 0.3707,
-    "specificity": 0.6571,
-    "fpr_per_hour": 617.19
+    "sensitivity": 0.3437,
+    "specificity": 0.5792,
+    "fpr_per_hour": 757.38,
+    "auprc": 0.004,
+    "roc_auc": 0.4517
   },
   "event_level": {
     "event_sensitivity": 0.6666666666666666,
-    "n_events": 6,
-    "n_detected": 4,
-    "false_positives": 7,
-    "fp_per_hour": 1.414458913336327,
-    "total_hours": 4.948888888888889,
+    "n_events": 12,
+    "n_detected": 8,
+    "false_positives": 8,
+    "fp_per_hour": 0.2424916012023542,
+    "total_hours": 32.990833333333335,
     "gap_tolerance_s": 60.0,
     "detection_fraction": 0.3,
     "min_sustained_windows": 3,
     "latencies_s": [
+      3.0,
       0.0,
-      23.0,
+      2.0,
+      0.0,
+      25.0,
       13.0,
-      11.0
+      2.0,
+      9.0
     ],
-    "mean_latency_s": 11.75,
-    "n_undetected": 2
+    "mean_latency_s": 6.75,
+    "n_undetected": 4
   }
 }

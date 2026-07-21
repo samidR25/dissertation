@@ -6,32 +6,33 @@
   "force_scaler_mismatch": false,
   "scaler_source": "data/processed/chb03_scaler.json",
   "collapse_diagnostic": {
-    "positive_window_fraction": 0.0,
-    "n_predicted_blocks": 0,
-    "largest_block_fraction": 0.0,
+    "positive_window_fraction": 0.0001,
+    "n_predicted_blocks": 3,
+    "largest_block_fraction": 0.0005,
     "pass": false,
     "reasons": [
-      "positive-window fraction 0.0000% is less than 10% of the true seizure-window rate (0.8681%) \u2014 likely under-firing collapse (model gone non-responsive), not genuine high specificity."
+      "positive-window fraction 0.0066% is less than 10% of the true seizure-window rate (0.2990%) \u2014 likely under-firing collapse (model gone non-responsive), not genuine high specificity."
     ]
   },
   "window_level": {
-    "sensitivity": 0.0,
-    "specificity": 1.0,
-    "fpr_per_hour": 0.0,
-    "auprc": 0.0338
+    "sensitivity": 0.0024,
+    "specificity": 0.9999,
+    "fpr_per_hour": 0.11,
+    "auprc": 0.0618,
+    "roc_auc": 0.7725
   },
   "event_level": {
     "event_sensitivity": 0.0,
-    "n_events": 3,
+    "n_events": 7,
     "n_detected": 0,
-    "false_positives": 0,
-    "fp_per_hour": 0.0,
-    "total_hours": 5.3438888888888885,
+    "false_positives": 1,
+    "fp_per_hour": 0.026321946654188116,
+    "total_hours": 37.99111111111111,
     "gap_tolerance_s": 60.0,
     "detection_fraction": 0.3,
     "min_sustained_windows": 3,
     "latencies_s": [],
     "mean_latency_s": null,
-    "n_undetected": 3
+    "n_undetected": 7
   }
 }

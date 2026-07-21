@@ -3,6 +3,7 @@
   "eval_patient": "chb13",
   "spike_threshold": 0.5,
   "conformal": null,
+  "force_scaler_mismatch": false,
   "scaler_source": "data/processed/chb13_scaler.json",
   "collapse_diagnostic": {
     "positive_window_fraction": 0.225,
@@ -16,7 +17,9 @@
   "window_level": {
     "sensitivity": 0.2381,
     "specificity": 0.7752,
-    "fpr_per_hour": 404.65
+    "fpr_per_hour": 404.65,
+    "auprc": 0.1028,
+    "roc_auc": 0.4423
   },
   "event_level": {
     "event_sensitivity": 0.16666666666666666,

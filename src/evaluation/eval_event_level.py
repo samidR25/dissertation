@@ -41,7 +41,7 @@ import akida
 sys.path.insert(0, '.')
 from src.evaluation.sliding_vote import event_level_metrics, collapse_diagnostic
 from src.manifest import load_manifest, require_scaler_match
-from sklearn.metrics import average_precision_score
+from sklearn.metrics import average_precision_score, roc_auc_score
 parser = argparse.ArgumentParser()
 parser.add_argument('--fbz',           required=True,
                     help="Path to converted .fbz SNN model")
@@ -351,6 +351,22 @@ ratio = _score_windows(X_eval, label='eval/test set')
 window_auprc = float(average_precision_score(y_eval, ratio))
 print(f"\n[Item 4] Window-level AUPRC (threshold-independent): {window_auprc:.4f}")
 
+# ── ROC-AUC, alongside AUPRC (supervisor request) ──────────────────────────
+# Same re-scoring of `ratio` against y_eval, no new inference. Report
+# alongside AUPRC, not instead of it -- ROC-AUC is known to look
+# artificially strong under this project's severe class imbalance, since
+# FPR is diluted by a large negative-class denominator in a way precision
+# is not. Guarded for the single-class edge case (e.g. an eval set with
+# zero seizure windows), where ROC-AUC is undefined.
+try:
+    window_roc_auc = float(roc_auc_score(y_eval, ratio))
+    print(f"[Item 4b] Window-level ROC-AUC: {window_roc_auc:.4f}  "
+          f"(report alongside AUPRC, not instead of it -- see docstring)")
+except ValueError:
+    window_roc_auc = None
+    print("[Item 4b] Window-level ROC-AUC: undefined (only one class "
+          "present in y_eval for this patient)")
+
 # ── Candidate E: split-conformal threshold selection (sec4) ───────────────────
 conformal_info = None
 if args.conformal:
@@ -504,6 +520,7 @@ with open(out_path, 'w') as f:
             'specificity': round(win_spec, 4) if win_spec is not None else None,
             'fpr_per_hour': round(win_fpr_hr, 2) if win_fpr_hr is not None else None,
             'auprc': round(window_auprc, 4),
+            'roc_auc': round(window_roc_auc, 4) if window_roc_auc is not None else None,
         },
         'event_level': {
             'event_sensitivity': ev['event_sensitivity'],

@@ -1,0 +1,12 @@
+{
+  "patient_tag": "multi_pool7",
+  "seed": 42,
+  "scaler_path": "data/processed/multi_pool7_scaler.json",
+  "scaler": null,
+  "finetune_from": null,
+  "gradual_unfreeze": false,
+  "freeze_depth": null,
+  "model_version": 2,
+  "git_commit": "2a3e55600424b281ac23b11bb620723b13d0588f",
+  "artifact": "results/best_ann_multi_pool7_v2.h5"
+}

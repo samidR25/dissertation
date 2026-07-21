@@ -107,26 +107,26 @@ for domain_id, pat in enumerate(args.patients):
     scaler_info[pat] = {'scale': float(scale), 'shift': float(shift),
                         'X_min': float(X_min),  'X_max': float(X_max)}
 
-    # Val slice: also small enough to copy safely
-    X_vl_s = np.array(X[n_train:n_train + n_val], dtype='float32')
-    X_vl_s = (X_vl_s * scale + shift).clip(0, 255).astype('float32')
-
+    # X_val_chrono construction removed here (memory fix, 20 July 2026
+    # pool7/8 OOM session) -- see apply_drop_val_chrono_patch.py docstring.
+    # This was the dominant memory cost: each patient's FULL val slice
+    # (tens of thousands of windows) was copied to float32 and retained
+    # for the whole loop, for a value confirmed unused downstream.
     train_X_parts.append(X_sub_s)
     train_y_parts.append(y_sub)
-    val_X_parts.append(X_vl_s)
-    val_y_parts.append(y_vl)
     domain_train_parts.append(np.full(len(y_sub), domain_id, dtype=np.int32))
-    domain_val_parts.append(np.full(len(y_vl), domain_id, dtype=np.int32))
 
-    del X, y, X_sub, X_sub_s, X_vl_s   # release mmap + copies
+    del X, y, X_sub, X_sub_s   # release mmap + copies
 
 # ── Pool ───────────────────────────────────────────────────────────────────────
 X_pool       = np.concatenate(train_X_parts, axis=0)
 y_pool       = np.concatenate(train_y_parts, axis=0)
-X_val_chrono = np.concatenate(val_X_parts,   axis=0)   # real, chronological,
-y_val_chrono = np.concatenate(val_y_parts,   axis=0)   # but 0 seizures — kept for reference only
 domain_pool       = np.concatenate(domain_train_parts, axis=0)   # DANN scoping
-domain_val_chrono = np.concatenate(domain_val_parts,   axis=0)
+# X_val_chrono/y_val_chrono/domain_val_chrono removed here (memory fix,
+# 20 July 2026 pool7/8 OOM session) -- see apply_drop_val_chrono_patch.py
+# docstring for the full diagnosis. Confirmed unused downstream (same
+# audit already applied to build_dataset_multi_longctx.py's identical
+# array).
 
 n_seiz_pool = int(y_pool.sum())
 print(f"\nPooled (before split/SMOTE): {len(X_pool)} windows "
@@ -213,14 +213,11 @@ os.makedirs('data/processed', exist_ok=True)
 out_path = 'data/processed/multi_dataset_ann.npz'
 np.savez_compressed(out_path,
                     X_train=X_train, y_train=y_train, domain_train=domain_train,
-                    X_val=X_val,     y_val=y_val,     domain_val=domain_val,
-                    X_val_chrono=X_val_chrono, y_val_chrono=y_val_chrono,
-                    domain_val_chrono=domain_val_chrono)
+                    X_val=X_val,     y_val=y_val,     domain_val=domain_val)
 print(f"\nSaved  : {out_path}")
 print(f"X_train: {X_train.shape}  range=[{X_train.min():.1f}, {X_train.max():.1f}]")
 print(f"y_train: seizure={int(y_train.sum())} ({100*y_train.mean():.1f}%)")
 print(f"X_val  : {X_val.shape}  seizure={int(y_val.sum())} ({100*y_val.mean():.1f}%)  (real, pre-SMOTE)")
-print(f"X_val_chrono: {X_val_chrono.shape}  seizure={int(y_val_chrono.sum())}  (reference only)")
 
 with open('data/processed/multi_scaler.json', 'w') as f:
     json.dump({'patients': args.patients,

@@ -1,0 +1,42 @@
+{
+  "fbz_path": "results/seizure_model_chb16ft_s256_v2_w4a4.fbz",
+  "eval_patient": "chb16",
+  "spike_threshold": 0.9738104939460754,
+  "conformal": {
+    "alpha": 0.01,
+    "n_calib_negative": 10225,
+    "quantile_level": 0.990122,
+    "selected_threshold": 0.97381
+  },
+  "force_scaler_mismatch": false,
+  "scaler_source": "data/processed/chb16_scaler.json",
+  "collapse_diagnostic": {
+    "positive_window_fraction": 0.0252,
+    "n_predicted_blocks": 44,
+    "largest_block_fraction": 0.0751,
+    "pass": true,
+    "reasons": []
+  },
+  "window_level": {
+    "sensitivity": 0.1905,
+    "specificity": 0.9754,
+    "fpr_per_hour": 44.22,
+    "auprc": 0.0235
+  },
+  "event_level": {
+    "event_sensitivity": 0.2,
+    "n_events": 5,
+    "n_detected": 1,
+    "false_positives": 28,
+    "fp_per_hour": 9.826476896081108,
+    "total_hours": 2.8494444444444444,
+    "gap_tolerance_s": 60.0,
+    "detection_fraction": 0.3,
+    "min_sustained_windows": 3,
+    "latencies_s": [
+      3.0
+    ],
+    "mean_latency_s": 3.0,
+    "n_undetected": 4
+  }
+}

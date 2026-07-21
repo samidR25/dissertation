@@ -16,7 +16,8 @@
     "sensitivity": 0.5061,
     "specificity": 0.9972,
     "fpr_per_hour": 5.06,
-    "auprc": 0.2087
+    "auprc": 0.2087,
+    "roc_auc": 0.8826
   },
   "event_level": {
     "event_sensitivity": 1.0,

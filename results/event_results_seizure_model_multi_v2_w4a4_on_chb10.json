@@ -6,33 +6,36 @@
   "force_scaler_mismatch": false,
   "scaler_source": "data/processed/chb10_scaler.json",
   "collapse_diagnostic": {
-    "positive_window_fraction": 0.0078,
-    "n_predicted_blocks": 57,
-    "largest_block_fraction": 0.0043,
+    "positive_window_fraction": 0.0044,
+    "n_predicted_blocks": 226,
+    "largest_block_fraction": 0.0028,
     "pass": true,
     "reasons": []
   },
   "window_level": {
-    "sensitivity": 0.395,
-    "specificity": 0.9963,
-    "fpr_per_hour": 6.73,
-    "auprc": 0.4286
+    "sensitivity": 0.4339,
+    "specificity": 0.9967,
+    "fpr_per_hour": 5.9,
+    "auprc": 0.2503,
+    "roc_auc": 0.9308
   },
   "event_level": {
-    "event_sensitivity": 0.5,
-    "n_events": 4,
-    "n_detected": 2,
-    "false_positives": 18,
-    "fp_per_hour": 2.3992002665778074,
-    "total_hours": 7.5025,
+    "event_sensitivity": 0.5714285714285714,
+    "n_events": 7,
+    "n_detected": 4,
+    "false_positives": 52,
+    "fp_per_hour": 1.039659222810301,
+    "total_hours": 50.01638888888889,
     "gap_tolerance_s": 60.0,
     "detection_fraction": 0.3,
     "min_sustained_windows": 3,
     "latencies_s": [
+      22.0,
+      5.0,
       15.0,
       20.0
     ],
-    "mean_latency_s": 17.5,
-    "n_undetected": 2
+    "mean_latency_s": 15.5,
+    "n_undetected": 3
   }
 }

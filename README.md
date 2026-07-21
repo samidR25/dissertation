@@ -53,6 +53,58 @@ Methodology notes:
 Pipeline: `src/preprocessing/build_dataset_lopo_fold.py` (fold-aware pool builder) → `src/preprocessing/build_lopo_eval_set.py` (full-recording eval set) → `train_baseline.py --pool-tag` → `convert_to_snn.py` → `eval_event_level.py --lopo-full`, orchestrated end-to-end by `run_lopo_sweep.sh`, aggregated by `src/evaluation/aggregate_lopo_results.py`.
 
 ---
+## Full method comparison
+
+| Method | What it answers | Event sensitivity | FP/hr | Collapse/Verdict |
+|---|---|---|---|---|
+| **C1** (frozen 3-patient pool, zero target data) | Cold cross-patient baseline | 0.343 ± 0.433 | 1.734 ± 2.496 | 60 seed×patient runs, 12 held-out patients — confirmed final number |
+| **LOPO** (rotating, all-folds) | — | 0.586 ± 0.445 | 4.00 | 15/15 folds, **not the reportable number** (inflated by collapse artifacts) |
+| **LOPO** (PASS-only) | Cold generalisation, field comparability | **0.470 ± 0.437** | 4.42 | 8/15 folds pass; **headline dissertation figure** |
+| **C2** (per-patient fine-tune) | Deployability, short calibration window | 1.000 / 0.667 / 0.571 / 0.200 | 5.46 / 2.42 / 1.33 / 9.83 | chb10 / chb13 / chb15 / chb16 — mixed, n=4 |
+| **DANN** (λ=0.1) | Adversarial domain-invariance | 0.167 | — | chb13, collapse-FAIL (over-firing) |
+| **CORAL** (λ=0.01) | Statistical covariance alignment | 0.167 | — | chb13, collapse-FAIL (over-firing) |
+| **SSL-pretrain** | Self-supervised init, no domain signal | 0.167 | — | chb13, collapse-FAIL (over-firing) |
+| **Candidate G** (3-seed mean) | Hand-engineered spectral features | 0.889 ± 0.157 | — | chb13, collapse-FAIL (over-firing, different magnitude) |
+| **C3 compounding** (aux head, focal loss, distillation) | Stack on top of C2 | — | — | All closed negative, no improvement over C2 alone |
+
+### Pool expansion experiment (July 2026) — does the model learn from more data?
+
+Supervisor-directed addition: a second training pool (**pool7** — chb01/02/05/06/07/09/20, vs. the original **C1** 3-patient pool chb01/02/05) was trained and evaluated to demonstrate the model learns from data it has access to, as a simpler sanity check before the harder LOPO cross-patient test. All patients below evaluated with `--lopo-full` (full patient recordings, not chronological test slices).
+
+**Does pool7 learn its own training patients?**
+
+| Patient | Event sensitivity | Events | AUPRC | ROC-AUC | Collapse |
+|---|---|---|---|---|---|
+| chb01 | 1.000 | 7/7 | 0.871 | 0.9996 | PASS |
+| chb02 | 1.000 | 3/3 | 0.648 | 0.985 | PASS |
+| chb05 | 1.000 | 5/5 | 0.928 | 0.9997 | PASS |
+| chb06 | 0.000 | 0/10 | 0.001 | 0.541 | PASS |
+| chb07 | 1.000 | 3/3 | 0.265 | 0.963 | PASS |
+| chb09 | 1.000 | 4/4 | 0.607 | 0.989 | PASS |
+| chb20 | 1.000 | 8/8 | 0.544 | 0.989 | PASS |
+
+6/7 patients achieve perfect event-level sensitivity with strong AUPRC/ROC-AUC, all genuinely collapse-PASS (not over-firing artifacts) — confirms the model learns real ictal structure rather than a threshold artifact. chb06 is a genuine, explicable exception: lowest raw seizure count (163 windows) and smallest post-SMOTE contribution of any pool7 patient, illustrating that pooling does not guarantee uniform learning across contributing patients.
+
+**Fair C1-vs-pool7 comparison** — 8 patients held out from *both* models, both evaluated identically (`--lopo-full`):
+
+| Patient | C1 sensitivity | C1 collapse | pool7 sensitivity | pool7 collapse |
+|---|---|---|---|---|
+| chb03 | 0.000 | FAIL | 0.000 | PASS |
+| chb10 | 0.571 | PASS | 1.000 | PASS |
+| chb11 | 1.000 | FAIL (over-fire) | 1.000 | FAIL |
+| chb13 | 0.667 | FAIL (over-fire) | 0.083 | PASS |
+| chb15 | 0.000 | FAIL | 0.000 | PASS |
+| chb16 | 0.000 | PASS | 0.000 | PASS |
+| chb18 | 0.000 | PASS | 0.000 | PASS |
+| chb19 | 1.000 | FAIL (over-fire) | 0.333 | PASS |
+
+**Headline finding: collapse-PASS rate improved from 3/8 (37.5%, C1) to 7/8 (87.5%, pool7).** Once filtered to genuinely trustworthy (collapse-PASS) folds, both models perform similarly on real detection ability (PASS-only mean sensitivity: C1 0.190, pool7 0.202) — expanding the pool didn't improve raw detection so much as it sharply reduced the collapse-artifact failure rate, at the cost of a higher false-positive rate among passing folds (PASS-only mean FP/hr: C1 ~0.855, pool7 ~3.69).
+
+### ROC-AUC
+
+Added alongside AUPRC (July 2026) for comparability with literature that reports ROC-AUC rather than AUPRC. **AUPRC remains the metric this project leads with** — ROC-AUC is known to look artificially strong under this project's severe class imbalance (~1–3% seizure-window rate), since false positive rate is diluted by a large negative-class denominator in a way precision is not. Full per-fold ROC-AUC values are stored alongside AUPRC in every `event_results_*.json`'s `window_level` block.
+
+---
 
 ## Pipeline overview
 
@@ -260,8 +312,9 @@ dissertation/
 | Phase 2b — Hardware deployment (AKD1000) | ✅ Complete |
 | Phase 2c — Cross-patient generalisation (C1, representational candidates: DANN/CORAL/SSL/Candidate G) | ✅ Closed (converged negative — see ledger) |
 | Phase 2d — LOPO (rotating, 15/15 folds) | ✅ Complete |
+| Phase 2e — Pool expansion (pool7) + ROC-AUC diagnostic | ✅ Complete |
 | Power measurement (bench DC supply) | 🔄 Scheduled next |
-| Hardware robustness (makerspace enclosure) | ⬜ Planned, low priority, after power measurement |
+| Hardware robustness (makerspace enclosure) |✅ Complete |
 | Phase 3 — Dissertation write-up | 🔄 Starting |
 
 ---
