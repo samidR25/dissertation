@@ -66,7 +66,7 @@ lopo_rows = {r['patient']: r for r in lopo_summary['per_fold']}
 # ── Load C2, with fallback + warnings ───────────────────────────────────
 c2_data = {}
 for p in PATIENTS:
-    path = os.path.join(args.results_dir, f'event_results_seizure_model_{p}ft_s256_v2_w4a4_on_{p}.json')
+    path = os.path.join(args.results_dir, f'event_results_seizure_model_{p}ft_s256_conformal_a01_v2_w4a4_on_{p}.json')
     if os.path.exists(path):
         with open(path) as f:
             r = json.load(f)
