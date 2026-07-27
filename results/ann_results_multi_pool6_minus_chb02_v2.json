@@ -1,0 +1,18 @@
+{
+  "patient": "multi_pool6_minus_chb02",
+  "model_version": 2,
+  "train": {
+    "n": 28928,
+    "n_seizure": 14464,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "fpr_per_hour": 0.0
+  },
+  "val": {
+    "n": 3978,
+    "n_seizure": 362,
+    "sensitivity": 0.9227,
+    "specificity": 0.9967,
+    "fpr_per_hour": 5.97
+  }
+}

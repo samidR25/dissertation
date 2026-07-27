@@ -1,0 +1,68 @@
+{
+  "source_checkpoint": "results/best_ann_multi_pool6_minus_chb20_v2.h5",
+  "scaler": {
+    "patients": [
+      "chb01",
+      "chb02",
+      "chb05",
+      "chb06",
+      "chb07",
+      "chb09"
+    ],
+    "domain_map": {
+      "chb01": 0,
+      "chb02": 1,
+      "chb05": 2,
+      "chb06": 3,
+      "chb07": 4,
+      "chb09": 5
+    },
+    "per_patient": {
+      "chb01": {
+        "scale": 80120.265625,
+        "shift": 124.16148376464844,
+        "X_min": -0.0015496888663619757,
+        "X_max": 0.0016330165090039372
+      },
+      "chb02": {
+        "scale": 68585.6171875,
+        "shift": 136.31568908691406,
+        "X_min": -0.001987525960430503,
+        "X_max": 0.001730444491840899
+      },
+      "chb05": {
+        "scale": 74778.828125,
+        "shift": 128.1468505859375,
+        "X_min": -0.001713678240776062,
+        "X_max": 0.001696367864497006
+      },
+      "chb06": {
+        "scale": 47234.2421875,
+        "shift": 120.787353515625,
+        "X_min": -0.0025571989826858044,
+        "X_max": 0.0028414169792085886
+      },
+      "chb07": {
+        "scale": 42441.50390625,
+        "shift": 142.4617462158203,
+        "X_min": -0.003356661181896925,
+        "X_max": 0.002651598770171404
+      },
+      "chb09": {
+        "scale": 55248.75,
+        "shift": 119.72621154785156,
+        "X_min": -0.002167039318010211,
+        "X_max": 0.002448439598083496
+      }
+    }
+  },
+  "base_tag": "multi_pool6_minus_chb20",
+  "calibration_patient": "multi_pool6_minus_chb20",
+  "model_version": 2,
+  "weight_bits": 4,
+  "activation_bits": 4,
+  "cal_samples": 256,
+  "seed": 42,
+  "git_commit": "e6fec7ea5fcc4bfad17ea65734971b58ee91e499",
+  "artifact": "results/seizure_model_multi_pool6_minus_chb20_v2_w4a4.fbz"
+}

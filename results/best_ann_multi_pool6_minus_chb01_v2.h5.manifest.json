@@ -1,0 +1,67 @@
+{
+  "patient_tag": "multi_pool6_minus_chb01",
+  "seed": 42,
+  "scaler_path": "data/processed/multi_pool6_minus_chb01_scaler.json",
+  "scaler": {
+    "patients": [
+      "chb02",
+      "chb05",
+      "chb06",
+      "chb07",
+      "chb09",
+      "chb20"
+    ],
+    "domain_map": {
+      "chb02": 0,
+      "chb05": 1,
+      "chb06": 2,
+      "chb07": 3,
+      "chb09": 4,
+      "chb20": 5
+    },
+    "per_patient": {
+      "chb02": {
+        "scale": 71017.421875,
+        "shift": 125.53308868408203,
+        "X_min": -0.0017676379065960646,
+        "X_max": 0.001823020284064114
+      },
+      "chb05": {
+        "scale": 74778.828125,
+        "shift": 128.1468505859375,
+        "X_min": -0.001713678240776062,
+        "X_max": 0.001696367864497006
+      },
+      "chb06": {
+        "scale": 47767.06640625,
+        "shift": 124.68415832519531,
+        "X_min": -0.0026102536357939243,
+        "X_max": 0.002728142775595188
+      },
+      "chb07": {
+        "scale": 48975.0,
+        "shift": 126.38224029541016,
+        "X_min": -0.002580546075478196,
+        "X_max": 0.002626182045787573
+      },
+      "chb09": {
+        "scale": 49927.1953125,
+        "shift": 128.23757934570312,
+        "X_min": -0.0025684915017336607,
+        "X_max": 0.002538935746997595
+      },
+      "chb20": {
+        "scale": 65242.46484375,
+        "shift": 110.45475006103516,
+        "X_min": -0.0016929885605350137,
+        "X_max": 0.002215499058365822
+      }
+    }
+  },
+  "finetune_from": null,
+  "gradual_unfreeze": false,
+  "freeze_depth": null,
+  "model_version": 2,
+  "git_commit": "e6fec7ea5fcc4bfad17ea65734971b58ee91e499",
+  "artifact": "results/best_ann_multi_pool6_minus_chb01_v2.h5"
+}
