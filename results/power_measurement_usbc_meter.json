@@ -1,0 +1,11 @@
+{
+  "method": "idle-vs-active USB-C inline meter delta",
+  "measurement_level": "system (Pi 5 + HAT + AKD1000 combined, not chip-isolated)",
+  "model": "results/seizure_model_multi_v2_w4a4.fbz",
+  "trials": [
+    {"trial": 1, "P_idle_W": 0.0, "P_active_W": 0.0},
+    {"trial": 2, "P_idle_W": 0.0, "P_active_W": 0.0},
+    {"trial": 3, "P_idle_W": 0.0, "P_active_W": 0.0}
+  ],
+  "notes": "Meter model: <fill in>. Idle measured with model mapped, no inference running. Active measured during continuous predict() loop, reading taken after ~5-10s stabilization."
+}

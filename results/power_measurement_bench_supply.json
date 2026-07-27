@@ -1,0 +1,14 @@
+{
+  "method": "idle-vs-active DC bench supply (RS PRO RS-3005P) delta, CV mode",
+  "measurement_level": "system (Pi 5 + M.2 HAT+ + AKD1000 card + GPIO fan combined, not chip-isolated)",
+  "supply_voltage_v": 5.00,
+  "model": "results/seizure_model_multi_v2_w4a4.fbz",
+  "notes": "Constant-voltage mode confirmed throughout (C.V indicator, no C.C trip). A 5V/0.12A cooling fan is soldered directly to the GPIO header and runs continuously; its constant draw appears in both idle and active readings and cancels in the delta.",
+  "trials": [
+    {"trial": 1, "I_idle_A": 1.048, "I_active_A": 2.162, "delta_A": 1.114, "delta_W": 5.57},
+    {"trial": 2, "I_idle_A": 1.036, "I_active_A": 2.172, "delta_A": 1.136, "delta_W": 5.68},
+    {"trial": 3, "I_idle_A": 1.052, "I_active_A": 2.177, "delta_A": 1.125, "delta_W": 5.63}
+  ],
+  "mean_delta_A": 1.125,
+  "mean_delta_W": 5.63
+}
