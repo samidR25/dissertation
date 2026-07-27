@@ -8,3 +8,17 @@ __pycache__/
 *.egg-info/
 *.bak
 figures/
+dissertation-latex/main.aux
+dissertation-latex/main.bbl
+dissertation-latex/main.bcf
+dissertation-latex/main.blg
+dissertation-latex/main.fdb_latexmk
+dissertation-latex/main.fls
+dissertation-latex/main.lof
+dissertation-latex/main.log
+dissertation-latex/main.lot
+dissertation-latex/main.out
+dissertation-latex/main.run.xml
+dissertation-latex/main.synctex.gz
+dissertation-latex/main.toc
+dissertation-latex/main.xdv
