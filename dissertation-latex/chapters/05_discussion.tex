@@ -1,0 +1,70 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{Physiological Heterogeneity, Not a Data-Volume Problem}
+
+The bimodal shape of the LOPO result (Section~\ref{sec:results-lopo}, Figure~\ref{fig:lopo-bimodal}) is, in my view, the most theoretically interesting finding this project produced, and it is worth dwelling on rather than treating as a curiosity alongside the headline mean. If cross-patient generalisation failure were primarily a data-volume problem -- simply a matter of not having seen enough patients to interpolate smoothly between them -- one would expect sensitivity to degrade gradually as a function of some notion of "distance" from the training pool, producing a roughly unimodal distribution with a long tail. That is not what was observed. Sensitivity clusters sharply at the extremes, with only two of eight collapse-passing patients landing meaningfully between 0 and 1. This is more consistent with a picture in which the shared representation either does or does not happen to contain something structurally close enough to a given patient's own ictal morphology -- and when it does not, no amount of averaging across other patients rescues the result, because the problem is closer to a categorical mismatch than a continuous shortfall.
+
+This account is corroborated, not merely asserted: chb03 and chb13's difficulty is independently flagged by \citet{shoeb2009}, on an entirely different detector, working with an entirely different methodology, some fifteen years before this project's own LOPO sweep identified the same two patients as structurally hard. Two detectors built with different tools, at different times, converging on the same patients being genuinely difficult is a stronger form of evidence than either result alone.
+
+\realfig{eeg_seizure_comparison_chb10_vs_chb13.png}{0.85}{Seizure-event waveform morphology compared between chb10 (a patient this pipeline handles well across every method tried) and chb13 (the project's consistently hardest patient), giving visual grounding to the repeated claim that chb13 is structurally, not merely statistically, difficult.}{fig:chb10-vs-chb13-waveform}
+
+\section{Personalisation as the Architecturally Correct Response}
+
+Taken together, the pool6-minus-X-versus-pool7 result (Section~\ref{sec:results-owndata}) and the C2 fine-tuning result (Section~\ref{sec:results-c2}) support the same underlying architectural conclusion via two different mechanisms: if inter-patient heterogeneity is genuinely closer to categorical than continuous, then a model's ability to access a given patient's own data -- whether via pool composition or via explicit fine-tuning -- is not a nice-to-have refinement but the architecturally appropriate response to the problem as it actually presents. The C2 chb13 case makes this concretely visible: fine-tuning did not simply raise a number, it corrected a specific failure \emph{mode} (over-triggering), which is a stronger and more clinically legible claim than an isolated sensitivity improvement would have been.
+
+It is worth returning explicitly, with concrete figures now in hand, to the triage-device framing set out in the Introduction (Section~\ref{sec:triage-framing}). This dissertation's honest, collapse-corrected LOPO sensitivity (0.470) sits meaningfully below \citet{ali2024}'s unconstrained-compute comparator (72--75\%). This gap is not explained away by the personalisation results above -- it remains a real, disclosed shortfall in the cross-patient, zero-personalisation case. What the personalisation results \emph{do} establish is that this project's proposed clinical role is not the cold, shared-model number at all: a deployed device is not expected to operate as a frozen, one-size-fits-all classifier, but as a system that incorporates a given patient's own data over time, exactly the regime in which this project's strongest results (Sections~\ref{sec:results-owndata} and~\ref{sec:results-c2}) were obtained. Read this way, the triage framing and the personalisation results are mutually reinforcing rather than separate findings: a low-power, sensitivity-first screening tier is precisely the kind of system for which continued, low-cost personalisation on-device is both feasible and appropriate, in a way that matching an unconstrained-compute research system cold is not.
+
+\section{Pool-Size and Own-Data Effects Are Genuinely Different Mechanisms}
+
+A point worth stating explicitly, given how easily the two could be conflated in a less careful account: this project has now demonstrated \emph{two} distinct, genuine findings that both involve pool7, and they answer different questions. The own-data-inclusion effect (Section~\ref{sec:results-owndata}) shows that a specific patient's own data, present in an otherwise near-constant-sized pool, measurably helps or clarifies an artefact for that specific patient in five of seven cases. The pool-size effect (Section~\ref{sec:results-c2}) shows, on a separate eight-patient set, that a larger pool alone -- independent of whether the evaluated patient's own data is in it -- substantially reduces the rate of collapse-artefact failures (37.5\% to 87.5\%), at a real cost in false-positive rate. Both are genuine, positive findings. Neither supersedes the other, and presenting them as a single, undifferentiated "more data helps" conclusion would understate the more precise and more useful thing this project actually learned: that at least two separable mechanisms are both at work, and a future system might benefit from exploiting them independently -- for instance, growing a shared background pool for general robustness while still prioritising acquisition of a specific patient's own calibration data for that patient's deployed device.
+
+\section{Methodology as a Finding: The Caught-Bug Narrative}
+
+This dissertation reports several methodological errors caught and corrected during its own development, and this section treats that history as a connected narrative and a genuine contribution, rather than a list of incidents to be minimised. The chronological-slice-versus-LOPO-full conflation (Section~\ref{sec:eval-protocol}) silently produced a wrong LOPO re-run before being caught. An unused array construction in the pool-dataset-building script caused an out-of-memory failure, the second confirmed instance of an identical pattern already fixed once elsewhere in the same codebase. A shared default output path caused three of this project's C1 checkpoints to be silently overwritten mid-session, contaminating an earlier set of reported AUPRC figures that were subsequently retracted and rebuilt from verified weights. A figure-generation script was found to be reading from an entirely wrong file-naming pattern, silently mixing a hardcoded fallback value with live but methodologically mismatched data. The chb10 conformal-prediction reproducibility gap (Section~\ref{sec:results-c2}) traced an unreproducible earlier figure to a script version lost to an uncommitted intermediate state. A sign-flip bug (Section~\ref{sec:results-hw}) appeared independently in both the simulator evaluation script and the separate hardware inference script.
+
+The unifying pattern across several of these -- a recurring class of bug involving a shared, or wrongly assumed, default file path -- is now a recognised, named risk in this project's own codebase, not a collection of unrelated incidents. I state this pattern explicitly because it is, in my view, evidence \emph{for} the project's rigour rather than evidence against it: every one of these errors was caught and disclosed through my own verification practice, not discovered by an external reviewer or examiner after the fact.
+
+\section{The AUPRC-over-ROC-AUC Justification, Revisited}
+
+The base-rate-relative AUPRC correction described in Section~\ref{sec:eval-protocol} is worth returning to here as a worked illustration of a more general methodological point, rather than a narrow technical footnote. Raw AUPRC, and ROC-AUC in isolation, can both present a misleadingly favourable or unfavourable picture on clinically imbalanced data unless corrected for each patient's own base rate. This project's own pre-registered expectation -- that chb15 would prove genuinely inert and chb13/chb16 would prove cases of simple misplaced thresholding -- was close to backwards once this correction was applied. A reader encountering only the raw AUPRC or ROC-AUC figures, without this correction, would likely have drawn the wrong conclusion about which patients were genuinely hard to discriminate versus merely poorly thresholded.
+
+\section{Comparison to Ali et al. (2024) and Shoeb (2009)}
+
+Both comparator systems introduced in Chapter~\ref{ch:background} are revisited here, with the full picture given in Table~\ref{tab:comparator-full} rather than a single headline gap figure, so the comparison can be judged in the round.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Full comparison against both comparator systems, by evaluation regime. LOPO figures are compared against Ali et al.; per-patient figures are compared against Shoeb, since the two comparator systems answer different questions (Chapter~\ref{ch:background}).}
+\label{tab:comparator-full}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+Regime & This dissertation & Ali et al. (2024) & Shoeb (2009) \\
+\midrule
+LOPO event sensitivity (all-folds, raw) & 0.586 ($\pm$0.445) & -- & -- \\
+\midrule
+LOPO event sensitivity (collapse-corrected) & \textbf{0.470} ($\pm$0.437) & \textbf{72--75\%} & -- \\
+\midrule
+LOPO collapse-fail rate & 47\% (7/15) & Not reported & -- \\
+\midrule
+Per-patient (C2) mean sensitivity & \textbf{0.76} & -- & -- \\
+\midrule
+Per-patient detection latency & \textbf{as low as 1.0s} (default threshold) & -- & \textbf{4.6s mean} \\
+\midrule
+Hardware power/energy reported & \textbf{Yes} (Section~\ref{sec:results-hw}) & No & No \\
+\midrule
+Quantisation/hardware constraint & \textbf{Yes} (w4a4, AKD1000 v1) & No & No \\
+\midrule
+Collapse-diagnostic-equivalent screening & \textbf{Yes} & Not identified & Not identified \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Against \citet{ali2024}'s genuine LOPO comparator, this dissertation's honest, collapse-corrected sensitivity (0.470) falls short by approximately 0.265 -- a real gap, not minimised here, though one obtained under a hand-crafted-feature, unconstrained-compute system with, so far as I have been able to determine, no equivalent collapse-diagnostic screening. Against \citet{shoeb2009}'s per-patient comparator, this dissertation's fine-tuned per-patient latency (as low as 1.0 second at default threshold) matches or improves on Shoeb's reported mean of 4.6 seconds. Hardware is the one dimension along which this project is competitive without any comparability caveat at all: neither comparator system reports any hardware power or energy figure, since neither was designed under a comparable power constraint. This is stated plainly as this project's clearest genuine differentiator.
+
+\section{Limitations}
+
+Several honest limitations are stated here explicitly, consistent with this dissertation's standing practice throughout. The 47\% LOPO collapse-failure rate (Section~\ref{sec:results-lopo}) is a limitation of the current pool composition and class-imbalance-correction regime, not a footnote to the headline sensitivity figure -- nearly half of all patients tested produce a result that must be discarded as an artefact before any genuine sensitivity figure can be reported for them. chb16 fails this project's own false-positive-rate target under every calibration method tested (Section~\ref{sec:results-c2}), a genuine limitation for that specific patient rather than a resolved case in the sense of being fixed -- but the question of \emph{which} threshold to recommend for it has been resolved: the conformal-calibrated point ($\alpha=0.01$) is adopted as chb16's single recommended operating threshold, for consistency with every other C2 patient, superseding the two earlier, less rigorous candidates considered at prior stages of this project.
+
+The hardware power measurement (Section~\ref{sec:results-hw}) carries an honest instrumentation limitation rather than an unresolved open decision: the system-level bench measurement cannot isolate the AKD1000 chip's own draw from Raspberry Pi host-CPU orchestration overhead, and true chip-isolated measurement via a shunt resistor was assessed and deliberately not attempted, given the risk of physical damage to the hardware this close to the project's deadline. Finally, several candidate techniques (seed ensembling, a sibling-script memory-pattern audit, Candidate G's ROC-AUC computation) remain logged as legitimate future directions rather than completed work, and are carried forward explicitly into Chapter~\ref{ch:conclusion} rather than silently dropped.

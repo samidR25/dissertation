@@ -1,0 +1,57 @@
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+\section{Summary of Contributions}
+
+This dissertation set out four research questions in Chapter~\ref{ch:introduction}, and each is answered here plainly, using the corrected rather than the raw headline figures established in Chapter~\ref{ch:results}.
+
+\textbf{RQ1} asked whether a quantised, ANN-to-SNN-converted network could achieve clinically meaningful per-patient sensitivity at microjoule-level energy cost on real AKD1000 v1 silicon. It can: per-patient fine-tuned results reach a mean sensitivity of approximately 0.76 at a measured energy cost of approximately 0.906\textmu J per inference, with latency competitive with or better than \citet{shoeb2009}'s comparator, on real, not simulated, hardware.
+
+\textbf{RQ2} asked how far a shared, cross-patient representation generalises to entirely unseen patients, and what the shape of that result reveals. The honest, collapse-corrected answer is 0.470 mean event sensitivity across 15 LOPO folds, meaningfully below \citet{ali2024}'s unconstrained-compute comparator, and markedly bimodal rather than smoothly distributed -- evidence, developed in Chapter~\ref{ch:discussion}, for genuine categorical heterogeneity in ictal presentation across patients rather than a simple data-volume shortfall.
+
+\textbf{RQ3} asked whether including a patient's own data measurably improves that patient's detection outcome, isolated as a single variable, and separately whether per-patient fine-tuning offers further gain or introduces its own sensitivities. The answer to the first is yes, for five of seven patients tested, via the dissertation's primary pool6-minus-X-versus-pool7 evidence (Section~\ref{sec:results-owndata}). The answer to the second is more qualified: fine-tuning corrects a genuine failure mode for at least one hard patient (chb13), but this project's own C1-versus-pool7 comparison shows a related, larger-pool effect operating through a distinguishable mechanism (collapse-failure-rate reduction rather than raw sensitivity gain), and a documented, still-standing seed-sensitivity issue is disclosed rather than smoothed over.
+
+\textbf{RQ4} asked whether a headline figure dependent on how its operating threshold was chosen survives a methodologically stricter re-calibration. It largely does not survive unchanged: this project's own threshold-sweep-selected false-positive-rate figures proved optimistic under conformal-prediction re-calibration, in a consistent direction across every patient tested, and this correction -- together with the chb10 reproducibility investigation it prompted -- is reported here as a genuine methodological contribution in its own right, not merely a housekeeping correction.
+
+Table~\ref{tab:rq-summary} summarises all four research questions against their corresponding finding and source section, for quick reference.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Summary of research questions against findings.}
+\label{tab:rq-summary}
+\begin{tabular}{p{1cm}p{5.5cm}p{5.5cm}p{1.8cm}}
+\toprule
+RQ & Question & Finding & Section \\
+\midrule
+RQ1 & Can a quantised, ANN-to-SNN-converted network achieve clinically meaningful per-patient sensitivity at microjoule-level energy cost on real silicon? & Yes -- mean sensitivity $\approx$0.76, $\approx$0.906\textmu J/inference, latency competitive with Shoeb (2009) & \ref{sec:results-c2}, \ref{sec:results-hw} \\
+\midrule
+RQ2 & How far does a shared, cross-patient representation generalise, and what does the shape of the result reveal? & 0.470 collapse-corrected mean sensitivity, meaningfully below Ali et al. (2024); markedly bimodal, suggesting categorical rather than continuous heterogeneity & \ref{sec:results-lopo} \\
+\midrule
+RQ3 & Does a patient's own data measurably help, isolated as a single variable, and does per-patient fine-tuning add further gain? & Yes for 5/7 patients (own-data inclusion); fine-tuning corrects a failure mode for chb13 but introduces pool-size and seed sensitivities & \ref{sec:results-owndata}, \ref{sec:results-c2} \\
+\midrule
+RQ4 & Does a threshold-dependent headline figure survive stricter re-calibration? & No -- sweep-selected FP/hr figures were optimistic for every patient tested; conformal correction gives the honest figure & \ref{sec:results-c2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{On the Project's Purpose}
+
+It is worth restating, at the close of this dissertation rather than only at its opening, what this work is offered as. It is not a finished clinical product, and none of the results in Chapter~\ref{ch:results} should be read as a claim of present-day deployment readiness. It is a first, deliberately honest step: a demonstration that the full pipeline -- from raw scalp EEG, through a quantised neural network, through spiking conversion, to real neuromorphic silicon -- is technically feasible end to end, evaluated with the same rigour, and reporting the same caveats and limitations, that a larger validation effort would demand. The intention behind this work, and behind the project's insistence throughout on stating raw figures before corrected ones and disclosing every caught error rather than a single one, is that any future, larger-scale effort building on it should be able to trust what is written here -- so that, over time, and with the further validation described below, a system in this design space might be of genuine benefit to people living with epilepsy, rather than a research result that looks better on paper than it would in practice.
+
+\section{Future Work}
+
+\subsection{A Staged Pathway Toward Deployment at Scale}
+
+Consistent with the framing above, future work is presented here as a staged pathway, not a single next step:
+
+\begin{enumerate}
+    \item \textbf{Confirmatory second-tier validation.} Consistent with the triage-device framing (Section~\ref{sec:triage-framing}), a natural next step is a confirmatory, higher-compute second tier that the low-power screening system in this dissertation could hand off to -- mirroring how a positive D-dimer result triggers CT pulmonary angiography, not a diagnosis in itself.
+    \item \textbf{Broader, multi-site validation.} This project's results rest on the CHB-MIT paediatric dataset from a single institution. A credible path toward wider deployment requires validation against adult patients, additional recording sites, and a broader range of electrode montages and seizure types than this dataset alone can provide.
+    \item \textbf{Resolving this project's own disclosed limitations.} Several concrete items are carried forward rather than left implicit: multi-seed confirmation of results currently screened at a single seed; a full audit of sibling data-building scripts for the shared-default-output-path bug pattern identified in this project; completion of Candidate G's ROC-AUC computation for full consistency with the rest of this dissertation's reporting; and a full reconciliation of chb16's three separate threshold-selection exercises into one stated operating point.
+    \item \textbf{Seed ensembling.} Logged in this dissertation as a considered candidate, not run, on explicit energy-cost grounds ($N\times$ inference and energy cost directly conflicts with this project's low-power design goal). Worth revisiting once a target deployment power budget is fixed by a specific downstream form factor.
+    \item \textbf{Hardware robustness and miniaturisation.} The Pineboards carrier-board failure encountered during this project (Chapter~\ref{ch:methodology}) is a reminder that a deployable wearable form factor is a separate, non-trivial engineering problem from the one this dissertation addresses; continued hardware-robustness work, and eventual miniaturisation toward a genuinely wearable device, would be a necessary further stage before any clinical deployment could be responsibly considered.
+    \item \textbf{A genuine, chip-isolated power measurement}, via a shunt-resistor-based instrumentation approach, deliberately not attempted in this project given deadline and hardware-risk constraints (Section~\ref{sec:results-hw}), would meaningfully sharpen this project's energy claims for any future work building on them.
+\end{enumerate}
+
+None of these steps is small, and this dissertation does not present them as a formality. They are stated here explicitly because a credible, staged path from a working prototype to something that could responsibly be trusted at scale, by real patients and clinicians, requires exactly this kind of honest accounting of what remains to be done -- consistent with the standard this dissertation has tried to hold itself to throughout.

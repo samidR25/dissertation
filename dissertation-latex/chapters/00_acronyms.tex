@@ -1,0 +1,53 @@
+\chapter*{Acronyms and Notation}
+\addcontentsline{toc}{chapter}{Acronyms and Notation}
+
+\section*{Acronyms}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Acronym & Meaning \\
+\midrule
+ANN & Artificial Neural Network \\
+AUPRC & Area Under the Precision-Recall Curve \\
+BN & Batch Normalisation \\
+C1 & Frozen shared-pool training regime (chb01/02/05) \\
+C2 & Per-patient fine-tuning training regime \\
+CHB-MIT & Children's Hospital Boston -- MIT (scalp EEG dataset) \\
+CNN & Convolutional Neural Network \\
+CORAL & Correlation Alignment (domain-adaptation method) \\
+DANN & Domain-Adversarial Neural Network \\
+EEG & Electroencephalography / Electroencephalogram \\
+FP/hr & False Positives per Hour \\
+FPR & False Positive Rate \\
+LIF & Leaky Integrate-and-Fire (spiking neuron model) \\
+LOPO & Leave-One-Patient-Out (cross-validation) \\
+NPU & Neural Processing Unit (AKD1000 hardware unit) \\
+ROC-AUC & Area Under the Receiver Operating Characteristic Curve \\
+SMOTE & Synthetic Minority Over-sampling Technique \\
+SNN & Spiking Neural Network \\
+SSL & Self-Supervised Learning (pretraining) \\
+STFT & Short-Time Fourier Transform \\
+w4a4 & 4-bit weights, 4-bit activations (quantisation scheme) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Notation}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Symbol & Meaning \\
+\midrule
+$V(t)$ & LIF neuron membrane potential at time $t$ \\
+$\tau$ & LIF membrane time constant \\
+$R$ & LIF neuron input resistance \\
+$I(t)$ & Incoming current to a LIF neuron at time $t$ \\
+$V_{\text{th}}$ & LIF spike threshold potential \\
+$V_{\text{reset}}$ & LIF post-spike reset potential \\
+$\alpha$ & Conformal prediction tolerance level (Section~\ref{sec:eval-protocol}) \\
+chbXX & CHB-MIT patient identifier (e.g. chb10, chb13) \\
+\bottomrule
+\end{tabular}
+\end{table}

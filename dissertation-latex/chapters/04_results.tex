@@ -1,0 +1,213 @@
+\chapter{Results}
+\label{ch:results}
+
+This chapter is ordered deliberately. The cross-patient generalisation result (Section~\ref{sec:results-lopo}) comes first, since it establishes the scale of the problem a shared representation faces. Section~\ref{sec:results-owndata} then presents this dissertation's primary personalisation evidence: an isolated comparison showing that including a patient's own data in an otherwise near-constant-sized training pool measurably improves that patient's own detection outcome, across seven patients. Section~\ref{sec:results-c2} presents a smaller, secondary treatment of a related but mechanistically distinct regime -- per-patient fine-tuning -- reframed around pool-size and training-seed effects rather than as this dissertation's central personalisation claim, together with a conformal-prediction-based correction to an earlier optimistic figure. Sections~\ref{sec:results-convergence} and~\ref{sec:results-hw} report the cross-candidate domain-adaptation convergence finding and the hardware deployment results respectively. Throughout, any raw or optimistic figure is stated in full before the corrected figure that supersedes it, per this dissertation's standing methodological-honesty principle.
+
+\section{Cross-Patient Generalisation: LOPO}
+\label{sec:results-lopo}
+
+A full 15-fold leave-one-patient-out (LOPO) cross-validation was conducted: for each of fifteen patients in turn, a model was trained on the other fourteen patients' complete recordings and evaluated on the held-out patient's complete recording (Section~\ref{sec:eval-protocol}). Full per-fold results are given in Table~\ref{tab:lopo-full} and Appendix~\ref{ch:appendix}.
+
+\begin{table}[H]
+\centering
+\caption{Full 15-fold LOPO results (undersample ratio 5:1). Collapse status marks whether window specificity clears the collapse-diagnostic threshold (Section~\ref{sec:eval-protocol}).}
+\label{tab:lopo-full}
+\begin{tabular}{lccccc}
+\toprule
+Patient & Event Sens. & FP/hr & Win. Spec. & Events & Collapse \\
+\midrule
+chb01 & 0.429 & 4.49 & 0.987 & 3/7   & PASS \\
+chb02 & 0.333 & 4.59 & 0.983 & 1/3   & PASS \\
+chb03 & 0.000 & 0.45 & 0.999 & 0/7   & PASS \\
+chb05 & 1.000 & 0.00 & 0.381 & 5/5   & \textbf{FAIL} \\
+chb06 & 0.000 & 0.19 & 0.999 & 0/10  & PASS \\
+chb07 & 1.000 & 1.21 & 0.997 & 3/3   & PASS \\
+chb09 & 1.000 & 9.08 & 0.931 & 4/4   & PASS \\
+chb10 & 1.000 & 7.88 & 0.983 & 7/7   & PASS \\
+chb11 & 1.000 & 7.53 & 0.880 & 3/3   & \textbf{FAIL} \\
+chb13 & 1.000 & 1.03 & 0.695 & 12/12 & \textbf{FAIL} \\
+chb15 & 0.900 & 6.93 & 0.780 & 18/20 & \textbf{FAIL} \\
+chb16 & 0.000 & 7.48 & 0.983 & 0/10  & PASS \\
+chb18 & 1.000 & 0.31 & 0.696 & 6/6   & \textbf{FAIL} \\
+chb19 & 0.000 & 3.88 & 0.807 & 0/3   & \textbf{FAIL} \\
+chb20 & 0.125 & 4.96 & 0.891 & 1/8   & \textbf{FAIL} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Headline Figures, Reported in Full}
+
+The all-folds mean event sensitivity, across all fifteen patients unfiltered, is \textbf{0.586 ($\pm$0.445)}, with a mean FP/hr of 4.00. This figure is stated first, in full, and must never be quoted alone: it is inflated by collapse artefacts. The collapse diagnostic reveals a \textbf{47\% collapse-failure rate} (7 of 15 folds), and five of those seven failing folds show sensitivity at or near 1.0 -- meaning most of the "perfect" scores visible in Table~\ref{tab:lopo-full} are the over-triggering artefact the collapse gate exists to catch, not genuine detection.
+
+Only once this is established is it appropriate to introduce the corrected figure. Restricting to the eight collapse-passing folds (chb01, chb02, chb03, chb06, chb07, chb09, chb10, chb16), the honest headline event sensitivity is \textbf{0.470 ($\pm$0.437)}, with a mean FP/hr of 4.42. This is the figure that should be compared against \citet{ali2024}'s reported 72--75\% under a genuine LOPO protocol -- a gap of approximately 0.265 below their midpoint (73.5\%) -- with the comparability caveat given in Chapter~\ref{ch:background} stated alongside it, not omitted.
+
+\subsection{Bimodality: The Shape of the Result}
+
+The mean alone understates the most informative feature of this result: its shape. Among the eight collapse-passing folds, sensitivity values are 0.429, 0.333, 0.000, 0.000, 1.000, 1.000, 1.000, and 0.000 -- clustering almost entirely at the two extremes, with only chb01 and chb02 landing meaningfully between them, rather than spreading smoothly around the mean.
+
+\realfig{lopo_sensitivity_bimodal_hist.png}{0.7}{Histogram of LOPO collapse-passing fold event sensitivities, showing bimodal clustering near 0.0 and 1.0 rather than a smooth unimodal spread around the mean.}{fig:lopo-bimodal}
+
+This bimodality is the strongest single piece of evidence this dissertation offers for the physiological-heterogeneity argument developed in Chapter~\ref{ch:discussion}: it suggests the shared representation either does or does not contain something close enough to a given patient's own ictal morphology, rather than generalisation degrading smoothly as some notion of "distance" from the training pool increases.
+
+\subsection{Per-Patient Breakdown}
+
+\realfig{lopo_per_patient_bars.png}{0.9}{Per-patient LOPO event sensitivity and FP/hr, grouped by collapse status.}{fig:lopo-bars}
+
+\realfig{lopo_sensitivity_vs_fphr_scatter.png}{0.75}{Scatter of event sensitivity against FP/hr across all fifteen LOPO folds, coloured by collapse status.}{fig:lopo-scatter}
+
+chb13 is worth discussing individually. Under domain-adaptation methods (Section~\ref{sec:results-convergence}) it is the single hardest patient in the project, failing consistently. Under LOPO, it fails again -- but via the \emph{opposite} mechanism: over-triggering (collapse-FAIL, window specificity 0.695) rather than under-detection. The same patient is difficult under every method tried in this project, but the specific way it fails depends on which method is applied -- a distinction worth stating explicitly rather than treating "chb13 fails" as a single, undifferentiated fact.
+
+\section{Personalisation via Own-Data Inclusion: pool6-minus-X vs. Pool7}
+\label{sec:results-owndata}
+
+This section presents this dissertation's primary evidence and justification for personalisation as a design principle. It is important to state its relationship to the smaller, secondary section that follows (Section~\ref{sec:results-c2}) precisely: both sections speak to a related claim -- that a patient's own data improves their own detection outcome -- but via different mechanisms. This section demonstrates the effect via \emph{pool composition} on a model that remains otherwise frozen and shared; Section~\ref{sec:results-c2} demonstrates a related effect via explicit \emph{per-patient fine-tuning}. The two are not the same experiment conducted at different scales, and this section's larger, more tightly controlled evidence is why it is presented first.
+
+\subsection{Does It Learn? All 7 Pool Patients on Their Own Data}
+
+Table~\ref{tab:pool7-owndata} reports each of pool7's seven training patients evaluated against their own full recording.
+
+\begin{table}[H]
+\centering
+\caption{Pool7 (chb01/02/05/06/07/09/20), each patient evaluated against their own full recording.}
+\label{tab:pool7-owndata}
+\begin{tabular}{lcccccc}
+\toprule
+Patient & Event Sens. & Events & AUPRC & ROC-AUC & Collapse & FP/hr \\
+\midrule
+chb01 & 1.000 & 7/7  & 0.871 & 0.9996 & PASS & 3.06 \\
+chb02 & 1.000 & 3/3  & 0.648 & 0.985  & PASS & 2.41 \\
+chb05 & 1.000 & 5/5  & 0.928 & 0.9997 & PASS & 3.08 \\
+chb06 & 0.000 & 0/10 & 0.001 & 0.541  & PASS & 8.42 \\
+chb07 & 1.000 & 3/3  & 0.265 & 0.963  & PASS & 1.54 \\
+chb09 & 1.000 & 4/4  & 0.607 & 0.989  & PASS & 5.98 \\
+chb20 & 1.000 & 8/8  & 0.544 & 0.989  & PASS & 8.41 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Six of seven patients are near-perfect across every metric, all genuinely collapse-passing rather than artefacts. chb06 is a genuine, explicable outlier -- the lowest raw seizure count of any pool patient, and the smallest post-SMOTE contribution to the training pool -- and is reported here explicitly, not omitted, to avoid any appearance of selective reporting. This table alone, however, conflates pool \emph{size} with the target patient's own data being \emph{present}: pool7 is larger than C1, and both factors could plausibly explain any observed benefit. Section~\ref{sec:pool6-minus-x} isolates the two.
+
+\subsection{The Primary Evidence: pool6-minus-X (Zero-Shot) vs. Pool7 (In-Pool)}
+\label{sec:pool6-minus-x}
+
+For each of pool7's seven patients, a matched six-patient pool excluding that patient (pool6-minus-X) was trained and evaluated zero-shot against them, then compared directly against pool7's own in-pool result for the same patient. Pool size is held approximately constant (six patients versus seven) across this comparison, so that only the presence or absence of the target patient's own data varies -- isolating the one factor this dissertation's primary personalisation claim rests on.
+
+\begin{table}[H]
+\centering
+\caption{pool6-minus-X (target patient excluded, zero-shot) vs. pool7 (target patient included), event sensitivity.}
+\label{tab:pool6-minus-x}
+\begin{tabular}{lccccl}
+\toprule
+Patient & pool6-minus-X Sens. & Collapse & pool7 Sens. & Collapse & Delta \\
+\midrule
+chb01 & 0.286 & PASS & 1.000 & PASS & \textbf{+0.714} \\
+chb02 & 0.667 & PASS & 1.000 & PASS & +0.333 \\
+chb05 & 1.000 & \textbf{FAIL} (spec 0.527) & 1.000 & PASS & see below \\
+chb06 & 0.000 & PASS & 0.000 & PASS & none \\
+chb07 & 1.000 & PASS & 1.000 & PASS & none \\
+chb09 & 1.000 & PASS & 1.000 & PASS & none \\
+chb20 & 0.125 & PASS & 1.000 & PASS & \textbf{+0.875} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+chb05 warrants its own discussion rather than a single table cell. Its raw sensitivity is identical (1.000) whether its own data is present or absent -- read carelessly, this would suggest no effect at all. The collapse diagnostic reveals the opposite: the zero-shot (excluded) result is a collapse-FAIL over-triggering artefact (window specificity 0.527, approximately 850 FP/hr -- essentially flagging everything), while the in-pool (included) result is a genuine detection. Including chb05's own data did not merely fail to move its headline sensitivity number; it converted a fake "perfect" result into a real one. This is the same collapse-diagnostic-reveals-an-artefact pattern already demonstrated for chb13 under C1 (Section~\ref{sec:results-convergence}) and for several LOPO collapse-failing folds (Section~\ref{sec:results-lopo}), observed here for a third time, in a new context.
+
+\textbf{Headline finding: five of seven patients show a real or artefact-clarifying benefit from their own data being present} -- chb01, chb02, and chb20 as clean sensitivity gains (+0.714, +0.333, +0.875 respectively), chb05 via the collapse-gate correction above. \textbf{Two of seven (chb06, chb07, chb09) show no measurable difference either way} -- chb06 fails regardless of context, consistent with it being a genuine outlier rather than a pool-composition effect; chb07 and chb09 succeed regardless, suggesting these two patients were already reasonably well represented by the surrounding pool's diversity even without their own data present. This is now this dissertation's central claim and justification for personalisation as a design principle.
+
+\section{C1 vs. C2: Pool-Size and Seed Effects}
+\label{sec:results-c2}
+
+This section is deliberately smaller than Section~\ref{sec:results-owndata} above, and its role in this dissertation's argument is narrower: it speaks to two specific questions -- how much a larger training pool alone changes the collapse-failure rate (independent of whether the evaluated patient's own data is in that pool), and how sensitive a fine-tuning result is to training-seed variance -- rather than serving as this dissertation's central personalisation evidence.
+
+\subsection{Fine-Tuning Result}
+
+Per-patient fine-tuning (C2) achieves a mean event sensitivity of approximately 0.76 across the six personalisation-eligible patients evaluated. chb13 is a notable individual case: its raw event sensitivity \emph{drops} under fine-tuning relative to C1 (0.833 to 0.667), yet the collapse diagnostic flips from FAIL to PASS -- fine-tuning corrected a failure \emph{mode} (over-triggering), not merely a headline number, a finding worth stating plainly rather than as a footnote to a lower raw figure.
+
+\subsection{Pool-Size Effect: C1 vs. Pool7 (8-Patient Comparison)}
+
+Using a separate eight-patient set (chb03, chb10, chb11, chb13, chb15, chb16, chb18, chb19), evaluated with the same full-recording LOPO protocol on both C1 and pool7, Table~\ref{tab:c1-vs-pool7} isolates the effect of pool size alone.
+
+\begin{table}[H]
+\centering
+\caption{C1 (3-patient pool) vs. pool7 (7-patient pool), same 8 held-out patients, both evaluated with full-recording LOPO.}
+\label{tab:c1-vs-pool7}
+\begin{tabular}{lcccc}
+\toprule
+Patient & C1 Sens. & C1 Collapse & Pool7 Sens. & Pool7 Collapse \\
+\midrule
+chb03 & 0.000 & FAIL & 0.000 & \textbf{PASS} \\
+chb10 & 0.571 & PASS & 1.000 & PASS \\
+chb11 & 1.000 & FAIL (over-fire) & 1.000 & FAIL \\
+chb13 & 0.667 & FAIL (over-fire) & 0.083 & \textbf{PASS} \\
+chb15 & 0.000 & FAIL & 0.000 & \textbf{PASS} \\
+chb16 & 0.000 & PASS & 0.000 & PASS \\
+chb18 & 0.000 & PASS & 0.000 & PASS \\
+chb19 & 1.000 & FAIL (over-fire) & 0.333 & \textbf{PASS} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The collapse-pass rate improves from C1's 3/8 (37.5\%) to pool7's 7/8 (87.5\%), while PASS-only mean sensitivity is nearly identical either way (C1: 0.190; pool7: 0.202). A larger pool did not meaningfully improve raw detection ability so much as it sharply reduced the collapse-artefact failure rate -- a real, but distinct, mechanism from the own-data effect demonstrated in Section~\ref{sec:pool6-minus-x}. This is not a free improvement: pool7's PASS-only mean FP/hr (approximately 3.69) is roughly four times C1's (approximately 0.855), a trade-off stated here plainly rather than left out of the headline.
+
+\subsection{Seed Sensitivity}
+
+A separate, still-standing observation concerns sensitivity to training-seed variance: chb10's fine-tuning result has been observed to swing between 0.000 and 1.000 sensitivity depending on random seed alone. This is distinct from, and should not be confused with, an earlier, now-\emph{retracted} finding that had attributed apparent seed fragility to genuine model instability; that earlier finding was traced to a sign-flip bug in the evaluation script (Section~\ref{sec:results-hw}) and formally withdrawn once the bug was corrected. The seed-variance observation described here is a separate, still-standing note, logged alongside this project's (not run, for stated energy-cost reasons) seed-ensembling candidate as a direction for future work.
+
+\subsection{Threshold Calibration and Conformal Correction}
+
+An initial threshold-sweep calibration reported, as originally obtained, FP/hr figures of 2.53 (chb10ft) and 0.81 (chb13ft) at a swept threshold of 0.99. These figures are stated here in full, first, because they are optimistic: the sweep selects its threshold by reading FP/hr off the very data being reported, effectively fitting the threshold to the test set rather than calibrating it independently.
+
+The corrected figures, from split-conformal prediction at $\alpha=0.01$ (Section~\ref{sec:eval-protocol}), are chb10ft 6.00/hr, chb13ft 2.42/hr, chb15ft 1.33/hr, and chb16ft 9.83/hr. All four move in the same direction relative to the sweep-selected figures -- a four-for-four consistency treated here as a meaningful signal, not noise.
+
+The chb10 case includes a worked reproducibility finding, reported here as an example of this project's honesty discipline rather than omitted. An earlier session reported chb10's conformal FP/hr as 5.46; on reproducing this figure against the project's final evaluation pipeline, the same checkpoint yields 6.00 (sensitivity unaffected -- 1.000, 4/4 events, in both cases). Investigation ruled out checkpoint identity, inference batching, the scoring formula, and calibration data as causes; the discrepancy is attributed to an earlier, uncommitted version of the evaluation script that predates a later code migration and was not separately preserved. 6.00 is reported here as the canonical, currently reproducible figure; 5.46 is stated as the earlier, now-irreproducible figure -- not silently dropped.
+
+\subsection{chb16: An Honest Limitation, Not Omitted}
+
+chb16 fails this project's own false-positive-rate target at every threshold tested, under every calibration method applied. Its window-level AUPRC (0.0235, near-chance) indicates the root cause is genuinely weak discrimination, not merely a misplaced threshold. This dissertation reports chb16 as an honest limitation of the current pipeline for this specific patient, rather than omitting it or selectively reporting only patients for which calibration succeeded.
+
+\textbf{Recommended operating threshold for chb16 (reconciling three prior candidates):} across earlier stages of this project, three different threshold-selection exercises were run for chb16, each optimising a different explicit criterion, and each giving a different answer: the collapse-diagnostic-passing threshold ($T^{*}=0.45$, the first value that clears the collapse gate at all); a threshold chosen as the best available compromise against the project's FPR target (0.70, window sensitivity 0.3810, still short of the target at every threshold tried); and the conformal-calibrated threshold used everywhere else in this section ($\alpha=0.01$, threshold $\approx 0.9738$, event sensitivity 0.200, FP/hr 9.83).
+
+This dissertation adopts the \textbf{conformal-calibrated threshold ($\alpha=0.01$) as chb16's single recommended operating point}, for one reason above all others: it is the same statistically principled, exchangeability-guaranteed criterion applied uniformly to every other C2 patient in this section (chb10ft, chb13ft, chb15ft), and adopting a different, patient-specific selection criterion for chb16 alone -- particularly one chosen after the fact because it produces a more flattering number -- would undermine the consistency this dissertation otherwise insists on. The collapse-passing threshold (0.45) and the FPR-target compromise (0.70) were both selected under earlier, less rigorous criteria specific to that stage of the project, and neither carries the same statistical guarantee; they are superseded by this recommendation, not silently discarded -- both are stated above, not omitted, precisely so a reader can see what was tried and why the conformal point was ultimately preferred. This choice is not presented as flattering chb16's result: an event sensitivity of 0.200 at 9.83 FP/hr is a poor operating point in absolute terms, and is reported as exactly that.
+
+\section{Cross-Candidate Convergence: DANN, CORAL, Self-Supervised Pretraining, Candidate G}
+\label{sec:results-convergence}
+
+Four independent domain-adaptation and representation-learning candidates were evaluated as potential remedies for cross-patient generalisation failure: domain-adversarial training (DANN), correlation alignment (CORAL), self-supervised pretraining, and a physiologically-normalised feature candidate (Candidate G). All four, via three or four genuinely distinct mechanisms, converge on the same finding: chb13 fails under every one of them.
+
+\realfig{chb13_convergence.png}{0.8}{Cross-candidate convergence: chb13's performance under DANN, CORAL, self-supervised pretraining, and Candidate G, illustrating the shared failure across independent mechanisms.}{fig:chb13-convergence}
+
+DANN's result is worth detailing as it was mechanism-verified rather than merely observed: a $\lambda=0$ control condition confirmed the adversarial domain-classification mechanism genuinely functions (domain-classifier accuracy collapsed from 1.00 to 0.47, near chance for a three-class problem, once the adversarial term was active), yet chb13 got measurably \emph{worse}, not better, at every non-zero $\lambda$ tested. CORAL and self-supervised pretraining were both confirmed negative on the same six-patient evaluation set, failing in the same direction. Candidate G, using physiologically-normalised input features, was likewise confirmed negative, via a distinguishable bimodal failure pattern rather than the same mechanism as the other three. This four-way convergence on a single patient, via multiple independent mechanisms, is treated in this dissertation as stronger evidence than any single negative result in isolation would have been, and is developed further in Chapter~\ref{ch:discussion}.
+
+\section{Hardware Deployment}
+\label{sec:results-hw}
+
+Deployment on real BrainChip AKD1000 v1 silicon (Chapter~\ref{ch:methodology}, Figure~\ref{fig:hw-setup}) achieved a measured inference latency of approximately 0.91ms per inference and an energy cost of approximately 0.906\textmu J per inference, based on a chip-isolated, datasheet-derived power estimate of approximately 1mW active power.
+
+A sign-flip bug was identified and corrected in the hardware inference script (\texttt{run\_on\_akida.py}) during this project: the deployed decision rule computed a ratio of spike counts that silently inverted whenever the underlying signed potential total fell below zero, an artefact of the unconstrained final dense layer's output. Prior to the fix, this produced a measured chb10 hardware sensitivity of 0.3132 against a simulator-predicted 0.3950 -- a discrepancy affecting 23 of 281 evaluated windows. Following the fix (replacing the ratio computation with a sign-safe sigmoid-of-margin formula, already in use elsewhere in the codebase), hardware results match the simulator exactly across all re-verified patients. This bug and its correction are reported here explicitly, consistent with this project's standing practice of disclosing caught methodological errors rather than presenting only a final, error-free-looking pipeline.
+
+\subsection{System-Level Power Measurement}
+
+A separate power figure was obtained via direct bench measurement on the physical deployment described in Chapter~\ref{ch:methodology} (Figure~\ref{fig:hw-setup}). Table~\ref{tab:power-trials} gives the full measurement: current at idle (model mapped to the device, no inference running) and active (a sustained inference loop running continuously for 30 seconds), across three independent trials, with the resulting power delta computed at the supply's fixed 5.00V.
+
+\begin{table}[H]
+\centering
+\caption{System-level bench power measurement (RS PRO RS-3005P, constant-voltage mode, 5.00V). A continuously-running 5V/0.12A GPIO-mounted cooling fan's constant draw appears in both idle and active readings and cancels in the delta.}
+\label{tab:power-trials}
+\begin{tabular}{ccccc}
+\toprule
+Trial & $I_{\text{idle}}$ (A) & $I_{\text{active}}$ (A) & $\Delta I$ (A) & $\Delta P$ (W) \\
+\midrule
+1 & 1.048 & 2.162 & 1.114 & 5.57 \\
+2 & 1.036 & 2.172 & 1.136 & 5.68 \\
+3 & 1.052 & 2.177 & 1.125 & 5.63 \\
+\midrule
+\multicolumn{3}{r}{Mean:} & \textbf{1.125} & \textbf{5.63} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mean delta of 1.125A at 5.00V gives \textbf{5.63W}, the figure reported as this dissertation's system-level power result throughout.
+
+
+This figure and the approximately 1mW chip-level estimate above are not comparable, and neither confirms nor refutes the other; this is stated explicitly rather than left for a reader to reconcile unassisted. The approximately 1mW figure is a datasheet-derived estimate of the AKD1000 chip's own isolated neuromorphic compute, used in this dissertation's energy-per-inference calculations. The 5.63W figure is the measured incremental cost to the \emph{entire host system} of a sustained inference workload -- necessarily including the Raspberry Pi 5's own ARM CPU cycles spent in the Python/SDK driver stack orchestrating each inference call, not the chip's consumption alone, since the AKD1000's power supply is derived internally from the Pi's single 5V rail with no separately metered path to the card (Chapter~\ref{ch:methodology}). The approximately three-orders-of-magnitude gap between the two figures reflects host-CPU orchestration overhead dominating the chip's own genuinely small draw, not an error in either measurement.

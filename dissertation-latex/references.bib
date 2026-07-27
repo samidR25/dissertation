@@ -1,0 +1,136 @@
+% All entries below verified via direct search against publisher/PubMed/
+% Semantic Scholar records as of this revision. The one exception is the
+% two BrainChip technical documents, which are primary-source technical
+% briefs/product documentation rather than peer-reviewed papers -- cited
+% as such, not as journal articles.
+
+% ── Dataset and epidemiological citations ───────────────────────────────
+
+@article{goldberger2000,
+  author  = {Goldberger, Ary L. and Amaral, Luis A. N. and Glass, Leon and Hausdorff, Jeffrey M. and Ivanov, Plamen Ch. and Mark, Roger G. and Mietus, Joseph E. and Moody, George B. and Peng, Chung-Kang and Stanley, H. Eugene},
+  title   = {PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals},
+  journal = {Circulation},
+  volume  = {101},
+  number  = {23},
+  pages   = {e215--e220},
+  year    = {2000},
+  doi     = {10.1161/01.CIR.101.23.e215},
+  note    = {The PhysioNet host publication for the CHB-MIT Scalp EEG Database used throughout this dissertation}
+}
+
+@misc{who2024epilepsy,
+  author  = {{World Health Organization}},
+  title   = {Epilepsy: Key Facts},
+  year    = {2024},
+  url     = {https://www.who.int/news-room/fact-sheets/detail/epilepsy},
+  note    = {Fact sheet, updated 2024. The "approximately 50 million people worldwide" figure was confirmed current against the live WHO page at time of writing; re-check before submission in case of a later update}
+}
+
+% ── Neuromorphic computing foundations ──────────────────────────────────
+
+@article{mead1990,
+  author  = {Mead, Carver},
+  title   = {Neuromorphic Electronic Systems},
+  journal = {Proceedings of the IEEE},
+  volume  = {78},
+  number  = {10},
+  pages   = {1629--1636},
+  year    = {1990},
+  doi     = {10.1109/5.58356}
+}
+
+@article{schuman2017,
+  author  = {Schuman, Catherine D. and Potok, Thomas E. and Patton, Robert M. and Birdwell, J. Douglas and Dean, Mark E. and Rose, Garrett S. and Plank, James S.},
+  title   = {A Survey of Neuromorphic Computing and Neural Networks in Hardware},
+  journal = {arXiv preprint arXiv:1705.06963},
+  year    = {2017}
+}
+
+@techreport{brainchip_akida_whitepaper,
+  author      = {{BrainChip Inc.}},
+  title       = {AKIDA Event Domain Neural Processor: Technical Brief},
+  institution = {BrainChip Inc.},
+  year        = {2023},
+  note        = {Primary-source technical documentation, not a peer-reviewed publication. Referenced as BrainChip\_techbrief\_WhatisAkida\_v31.pdf in the project's technical documentation}
+}
+
+@techreport{brainchip_akd1000_productbrief,
+  author      = {{BrainChip Inc.}},
+  title       = {AKD1000 Neuromorphic System-on-Chip: Product Brief},
+  institution = {BrainChip Inc.},
+  year        = {2025},
+  note        = {Primary-source technical documentation, not a peer-reviewed publication. Referenced as AkidaAKD1000SoCProductBriefV2\_3Mar\_2511.pdf in the project's technical documentation}
+}
+
+% ── Spiking neuron models and SNN theory ────────────────────────────────
+
+@book{gerstner2002,
+  author    = {Gerstner, Wulfram and Kistler, Werner M.},
+  title     = {Spiking Neuron Models: Single Neurons, Populations, Plasticity},
+  publisher = {Cambridge University Press},
+  year      = {2002},
+  isbn      = {9780521813846}
+}
+
+@article{maass1997,
+  author  = {Maass, Wolfgang},
+  title   = {Networks of Spiking Neurons: The Third Generation of Neural Network Models},
+  journal = {Neural Networks},
+  volume  = {10},
+  number  = {9},
+  pages   = {1659--1671},
+  year    = {1997},
+  doi     = {10.1016/S0893-6080(97)00011-7}
+}
+
+@article{pfeiffer2018,
+  author  = {Pfeiffer, Michael and Pfeil, Thomas},
+  title   = {Deep Learning With Spiking Neurons: Opportunities and Challenges},
+  journal = {Frontiers in Neuroscience},
+  volume  = {12},
+  pages   = {774},
+  year    = {2018},
+  doi     = {10.3389/fnins.2018.00774},
+  note    = {Resolved: the project file fnins1200331.pdf was checked directly and is in fact Rueckauer et al. (2017), Front. Neurosci. 11:682 (see \texttt{rueckauer2017} below) -- its filename does not encode volume/article number as originally assumed. No separate file for this Pfeiffer \& Pfeil citation has been located; if one exists it has not yet been checked against this entry}
+}
+
+% ── ANN-to-SNN conversion ────────────────────────────────────────────────
+
+@article{rueckauer2017,
+  author  = {Rueckauer, Bodo and Lungu, Iulia-Alexandra and Hu, Yuhuang and Pfeiffer, Michael and Liu, Shih-Chii},
+  title   = {Conversion of Continuous-Valued Deep Networks to Efficient Event-Driven Networks for Image Classification},
+  journal = {Frontiers in Neuroscience},
+  volume  = {11},
+  pages   = {682},
+  year    = {2017},
+  doi     = {10.3389/fnins.2017.00682}
+}
+
+% ── Comparator seizure-detection systems ────────────────────────────────
+
+@phdthesis{shoeb2009,
+  author = {Shoeb, Ali H.},
+  title  = {Application of Machine Learning to Epileptic Seizure Onset Detection and Treatment},
+  school = {Massachusetts Institute of Technology},
+  year   = {2009}
+}
+
+@inproceedings{shoebguttag2010,
+  author    = {Shoeb, Ali H. and Guttag, John V.},
+  title     = {Application of Machine Learning to Epileptic Seizure Detection},
+  booktitle = {Proceedings of the 27th International Conference on Machine Learning (ICML)},
+  year      = {2010},
+  note      = {Companion conference paper to Shoeb's (2009) thesis, not currently cited in-text. Kept here since it is a real, correctly identified paper (unlike the entry it was originally added to disambiguate against); cite directly if a specific per-patient figure is confirmed to come from this paper rather than the thesis}
+}
+
+@article{ali2024,
+  author    = {Ali, Emran and Angelova, Maia and Karmakar, Chandan},
+  title     = {Epileptic Seizure Detection Using {CHB-MIT} Dataset: The Overlooked Perspectives},
+  journal   = {Royal Society Open Science},
+  volume    = {11},
+  number    = {4},
+  pages     = {230601},
+  year      = {2024},
+  publisher = {The Royal Society},
+  doi       = {10.1098/rsos.230601}
+}

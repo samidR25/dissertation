@@ -1,0 +1,166 @@
+\documentclass[12pt,a4paper]{report}
+
+% ══════════════════════════════════════════════════════════════════════
+% IMPORTANT — COMPILER ENGINE: this document now requires XeLaTeX (or
+% LuaLaTeX), NOT plain pdflatex. This is because the opening Arabic
+% invocation below needs proper right-to-left script shaping, which
+% pdflatex cannot do correctly (it will render Arabic Unicode as
+% disconnected, wrongly-ordered glyphs). In VSCode's LaTeX Workshop:
+% Settings -> search "latex-workshop.latex.recipes" -> ensure a recipe
+% using "xelatex" (not "pdflatex") + "biber" + "xelatex" x2 is selected as
+% default, or select it manually from the recipe dropdown next to the
+% build button. On Debian/WSL2, install Arabic font + shaping support via:
+%   sudo apt install texlive-lang-arabic fonts-noto
+% (Amiri, used below, may need a separate install if not bundled -- if
+% `\newfontfamily{\arabicfont}{Amiri}` fails to find the font, install it
+% via `sudo apt install fonts-amiri` or download it and place it in
+% ~/.local/share/fonts, then run `fc-cache -f`.)
+% ══════════════════════════════════════════════════════════════════════
+
+% ── Packages ─────────────────────────────────────────────────────────────
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}      % clean tables (\toprule, \midrule, \bottomrule)
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}       % \SI{0.906}{\micro\joule} etc.
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{rotating}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{arabic}
+\newfontfamily{\arabicfont}[Script=Arabic]{Amiri}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=authoryear,natbib=true,autolang=other]{biblatex}
+\addbibresource{references.bib}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdftitle={Ultra-Low-Power Neuromorphic AI for Epileptic Seizure Detection},
+    pdfauthor={Samid R.}
+}
+
+% ── Convenience macros — keep clinical-honesty ordering consistent ────────
+% Use \rawthen{raw}{corrected}{explanation} wherever a raw/uncorrected number
+% and a corrected/honest number both exist for the same result, per the
+% project's standing methodological-honesty rule: raw number stated in full,
+% first, before the corrected figure is introduced.
+\newcommand{\rawthen}[3]{%
+    \textbf{Raw/uncorrected figure:} #1. #3\\
+    \textbf{Corrected figure:} #2%
+}
+
+\graphicspath{{figures/}}
+
+% Placeholder for a not-yet-inserted figure/image asset. Renders as a
+% clearly labelled boxed placeholder in the compiled PDF so it is obvious
+% at a glance what still needs inserting and what filename/caption to use.
+% Usage: \figplaceholder{expected-filename.png}{Caption text}{fig:label}
+\newcommand{\figplaceholder}[3]{%
+    \begin{figure}[H]
+        \centering
+        \fbox{\parbox{0.85\textwidth}{\centering\vspace{1.5cm}
+        \textbf{[INSERT FIGURE HERE]}\\[0.3cm]
+        \texttt{\detokenize{#1}}
+        \vspace{1.5cm}}}
+        \caption{#2}
+        \label{#3}
+    \end{figure}%
+}
+
+% A real, already-generated figure. Usage:
+% \realfig{filename.png}{width-fraction e.g. 0.8}{Caption text}{fig:label}
+\newcommand{\realfig}[4]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#2\textwidth]{#1}
+        \caption{#3}
+        \label{#4}
+    \end{figure}%
+}
+
+% Same as \realfig, but rotated onto its own landscape page -- use for
+% wide horizontal pipeline/block diagrams where portrait width squeezes
+% the text illegibly small even at width=1.0\textwidth. Width fraction
+% here is relative to \textheight (the rotated page's usable "width").
+\newcommand{\realfigwide}[4]{%
+    \begin{sidewaysfigure}
+        \centering
+        \includegraphics[width=#2\textheight]{#1}
+        \caption{#3}
+        \label{#4}
+    \end{sidewaysfigure}%
+}
+
+\onehalfspacing
+
+% ── Title page ───────────────────────────────────────────────────────────
+\title{
+    \includegraphics[width=5cm]{cardiff_university_logo.png}\\[1.5cm]
+    \Huge\textbf{Ultra-Low-Power Neuromorphic AI\\for Epileptic Seizure Detection}\\[1cm]
+    \Large A Spatio-Temporal CNN to Spiking Neural Network Pipeline\\
+    Deployed on BrainChip AKD1000 Silicon
+}
+\author{Samidur Rahman.}
+\date{
+    MSc Advanced Computer Science\\
+    Cardiff University\\[0.5cm]
+    Supervisor: Dr Nick Pham\\
+    Cardiff Agile CPS Lab\\[1cm]
+    \today
+}
+
+\begin{document}
+
+\pagenumbering{roman}
+\maketitle
+
+% ── Abstract ─────────────────────────────────────────────────────────────
+\begin{abstract}
+\input{chapters/00_abstract.tex}
+\end{abstract}
+
+% ── Acknowledgements ─────────────────────────────────────────────────────
+\chapter*{Acknowledgements}
+
+\begin{center}
+    \vspace*{0.5cm}
+    \textarabic{\fontsize{24}{34}\selectfont بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ}\\[0.4cm]
+    \vspace*{1cm}
+\end{center}
+
+\input{chapters/00_acknowledgements.tex}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\input{chapters/00_acronyms.tex}
+
+\pagenumbering{arabic}
+
+% ── Chapters, in the order agreed: Methodology -> Results -> Discussion, ─
+% preceded by Introduction/Background and followed by Conclusion, per the
+% handoff's Section 12 structure. ─────────────────────────────────────────
+\input{chapters/01_introduction.tex}
+\input{chapters/02_background.tex}
+\input{chapters/03_methodology.tex}
+\input{chapters/04_results.tex}
+\input{chapters/05_discussion.tex}
+\input{chapters/06_conclusion.tex}
+
+\printbibliography
+
+\appendix
+\input{chapters/07_appendix.tex}
+
+\end{document}

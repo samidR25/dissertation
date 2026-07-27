@@ -1,0 +1,46 @@
+\chapter{Additional Material}
+\label{ch:appendix}
+
+\section{Full LOPO Per-Fold Table}
+
+Table~\ref{tab:lopo-full} in Chapter~\ref{ch:results} is reproduced here for reference alongside the source it was generated from.
+
+\begin{center}
+\textit{Source: \texttt{results/lopo\_summary.json}, all 15 folds, undersample ratio 5:1. See Table~\ref{tab:lopo-full} for the full table.}
+\end{center}
+
+\section{Full C2 Per-Patient Metric Bundles}
+
+% Full per-patient bundle (event sens, FP/hr, window spec, AUPRC, ROC-AUC,
+% latency) for all six C2 personalisation-eligible patients -- pull live
+% from the corresponding results/event_results_*.json files per the
+% project's "figures/tables read live, not hardcoded" convention. Table
+% not reproduced here in full pending final confirmation of each file's
+% conformal-vs-default-threshold provenance (Section~\ref{sec:results-c2}).
+
+\realfig{c2_vs_lopo_comparison.png}{0.85}{C2 per-patient fine-tuning results compared against the corresponding LOPO zero-shot result for the same patient, where available.}{fig:c2-vs-lopo}
+
+\section{AKD1000 v1 Architecture Constraints Reference}
+
+Summarised from the project's architecture-constraints reference documentation, and stated here as a single consolidated reference for the constraints cited throughout Chapter~\ref{ch:methodology}:
+
+\begin{itemize}
+    \item Maximum weight and activation bitwidth: 4 bits (w4a4), confirmed via \texttt{cnn2snn}'s own model-compatibility validation as the hard ceiling for this hardware revision.
+    \item Dilated convolutions (\texttt{dilation\_rate} $\neq 1$) are unsupported (constraint \#24 in the project's internal constraints reference) and fail at \texttt{check\_model\_compatibility()}.
+    \item Batch normalisation must be folded or removed prior to conversion, as it has no direct spiking equivalent.
+    \item Supported kernel sizes are constrained to fixed silicon-routing-compatible sizes (1$\times$1, 3$\times$3, 5$\times$5, 7$\times$7).
+    \item Activation function is restricted to ReLU; the ANN-to-SNN conversion is defined specifically for this activation and does not extend to LeakyReLU, GELU, or similar variants.
+\end{itemize}
+
+\section{Code and Reproducibility}
+
+The full project codebase is maintained at \texttt{github.com/samidR25/dissertation}. Result files referenced throughout this dissertation follow the naming convention
+
+\path{results/event_results_seizure_model_{patient}{variant}_s256_[conformal_a01_]v2_w4a4_on_{patient}.json}
+
+\noindent and figure-generation scripts are designed to read live from the \texttt{results/} directory rather than hold hardcoded data tables, so that any figure in this dissertation can be regenerated directly from the underlying result files by re-running the corresponding script.
+
+% Point to specific script <-> results-table <-> dissertation-table
+% mappings here once all figures/tables in the main text are finalised,
+% for a marker who wishes to verify a specific reported number against its
+% source file directly.
