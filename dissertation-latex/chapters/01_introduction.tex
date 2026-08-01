@@ -3,41 +3,103 @@
 
 \section{Motivation}
 
-Epilepsy affects approximately 50 million people worldwide \citep{who2024epilepsy}, and a substantial minority continue to experience unpredictable seizures despite optimal pharmacological management. Continuous, ambulatory monitoring offers the possibility of timely intervention, caregiver alerting, and long-term seizure quantification for treatment planning, but the practical barrier to any such system is power. A device that must be worn continuously, for weeks or months at a time, on a battery small enough to be tolerable, cannot draw on the multi-watt power budgets that conventional convolutional neural network inference assumes. This dissertation is concerned with a narrower and more concrete question than "can a neural network detect seizures from scalp EEG" -- a question the literature has answered affirmatively many times over -- and asks instead whether that detection capability survives being compressed onto neuromorphic silicon operating at microwatt-scale power, and what is honestly lost or gained in doing so.
+Epilepsy affects approximately 50 million people worldwide \citep{who2024epilepsy}, and a substantial minority are still experiencing unpredictable seizures despite 
+pharmacological management. Continuous, ambulatory monitoring offers the possibility of timely intervention, caregiver alerting, and long-term seizure quantification for treatment 
+planning, but the practical barrier to any such system is power. A device that must be worn continuously, for weeks or months at a time, on a battery small enough to be tolerable, 
+cannot draw on the multi-watt power budgets that conventional convolutional neural network inference assumes. This dissertation is concerned with a narrower and more concrete question 
+than "can a neural network detect seizures from scalp EEG" -- a question that has been answered affirmatively many times over -- and asks instead whether that detection capability 
+survives being compressed onto neuromorphic silicon operating at microwatt-scale power, and what is honestly lost or gained in doing so.
 
-Neuromorphic hardware, and the BrainChip AKD1000 processor specifically, offers a route to this power budget by replacing dense, clocked matrix multiplication with sparse, event-driven spiking computation. The cost of this route is a set of hard architectural constraints -- low-bitwidth quantisation, restricted layer types, no native support for some operations taken for granted on conventional accelerators -- that shape every design decision in this project, from the network architecture (Chapter~\ref{ch:methodology}) to what forms of temporal context are even representable on the target silicon. This dissertation reports what happens when a real, physical AKD1000 chip, not a simulator, is asked to perform this task end to end.
 
-A further methodological commitment, developed fully in Chapter~\ref{ch:methodology} but stated here because it shapes every result in this dissertation: all data splits in this project are chronological, not randomly stratified. An earlier portion of each patient's recording is used for training and an earlier-still portion for calibration, with a later, strictly held-out portion reserved for testing, so that no information from a point in time after a given test window can ever have influenced the model's behaviour at that window -- a guarantee a real, prospectively-deployed device would also have to satisfy, and one a randomly stratified split cannot make.
+Neuromorphic hardware, and the BrainChip AKD1000 processor specifically, offers a route to this power budget by replacing dense, clocked matrix multiplication with sparse, event-driven 
+spiking computation. The cost of this route is a set of hard architectural constraints -- low-bitwidth quantisation, restricted layer types, no native support for some operations taken 
+for granted on conventional accelerators -- that shape every design decision in this project, from the network architecture (Chapter~\ref{ch:methodology}) to what forms of temporal 
+context are even representable on the target silicon. This dissertation reports what happens when a real, physical AKD1000 chip, not a simulator, is asked to perform this task end to 
+end.
 
-It is worth stating plainly, at the outset, what this project does and does not claim to be. It is not a finished clinical product, nor does it claim readiness for deployment at scale. It is a first, deliberately modest step: a demonstration that the pipeline is technically feasible end to end, on real hardware, evaluated with the same rigour that a larger validation effort would require, so that a genuine, staged path toward wider deployment -- more patients, more sites, a miniaturised and regulatory-cleared form factor -- has an honest foundation to build from rather than an inflated one.
+
+A further commitment, developed fully in Chapter~\ref{ch:methodology} but stated here because it shapes every result in this report: all data splits in this project are 
+chronological, not randomly stratified. An earlier portion of each patient's recording is used for training and an earlier-still portion for calibration, with a later, strictly 
+held-out portion reserved for testing, so that no information from a point in time after a given test window can ever have influenced the model's behaviour at that window -- a 
+guarantee a real, prospectively-deployed device would also have to satisfy, and one a randomly stratified split cannot make.
+
+It is worth stating plainly, at the outset, what this project does and does not claim to be. It is not a finished clinical product, nor does it claim readiness for deployment at scale.
+It is a first, deliberately modest step: a demonstration that the pipeline is technically feasible end to end, on real hardware, evaluated with the same rigour that a larger validation
+effort would require, so that a genuine, staged path toward wider deployment -- more patients, more sites, a miniaturised and regulatory-cleared form factor -- has an honest 
+foundation to build from rather than an inflated one.
 
 \section{The Triage-Device Framing}
 \label{sec:triage-framing}
 
-It would be easy, and misleading, to present this system as an attempt to outperform state-of-the-art seizure detectors that assume unconstrained compute. It does not, and is not designed to. The more accurate clinical analogy, adopted throughout this dissertation, is the D-dimer blood test used in the emergency diagnosis of pulmonary embolism (PE).
+It would be easy, and misleading, to present this system as an attempt to outperform state-of-the-art seizure detectors that assume unconstrained compute. It does not, and is not 
+designed to. The more accurate clinical analogy, adopted throughout this dissertation, is the D-dimer blood test used in the emergency diagnosis of pulmonary embolism (PE).
 
-D-dimer testing is not a diagnosis of PE. It is a cheap, fast, low-risk first-line screen with deliberately high sensitivity and correspondingly modest specificity: a negative result is used to rule PE out with confidence, while a positive result does not confirm PE but instead triggers a more expensive, more specific confirmatory investigation, typically CT pulmonary angiography. The clinical value of the test lies precisely in its asymmetry -- it is acceptable, even desirable, for the test to over-flag, provided it essentially never under-flags a genuine case, because the cost of a false positive (an unnecessary confirmatory scan) is far smaller than the cost of a missed embolism.
+D-dimer testing is not a diagnosis of PE. It is a cheap, fast, low-risk first-line screen with deliberately high sensitivity and correspondingly modest specificity: a negative result 
+is used to rule PE out with confidence, while a positive result does not confirm PE but instead triggers a more expensive, more specific confirmatory investigation, typically CT 
+pulmonary angiography. The clinical value of the test lies precisely in its asymmetry -- it is acceptable, even desirable, for the test to over-flag, provided it essentially never 
+under-flags a genuine case, because the cost of a false positive (an unnecessary confirmatory scan) is far smaller than the cost of a missed embolism.
 
-This project adopts the same asymmetry deliberately. Event sensitivity -- not missing a genuine seizure -- is treated throughout as the primary metric; this was a design decision I made on the grounds that a low-power triage-tier device should be judged first on what it fails to catch. False-positive rate (FP/hr) is never omitted alongside sensitivity, nor is it treated as a secondary or cosmetic concern, but it is not the metric this system is optimised to minimise at the expense of missed events. A microwatt-class device sitting on a patient's scalp is not positioned to replace a full clinical monitoring suite; it is positioned to run continuously, cheaply, and reliably enough to flag "something worth a closer, more expensive look happened here" -- an always-on first tier, not a stand-alone diagnostic authority. Where this dissertation's results fall short of unconstrained-compute comparators (Chapter~\ref{ch:results}), this framing is the honest context for that gap, not an excuse for it: the two systems are answering different clinical questions under different resource constraints, and the comparison is presented with that caveat stated plainly rather than glossed over.
+This project adopts the same asymmetry deliberately. Event sensitivity -- not missing a genuine seizure -- is treated throughout as the primary metric; this was a design decision I 
+made on the grounds that a low-power triage-tier device should be judged first on what it fails to catch. False-positive rate (FP/hr) is never omitted alongside sensitivity, nor is it 
+treated as a secondary or cosmetic concern, but it is not the metric this system is optimised to minimise at the expense of missed events. A microwatt-class device sitting on a 
+patient's scalp is not positioned to replace a full clinical monitoring suite; it is positioned to run continuously, cheaply, and reliably enough to flag something worth a closer, 
+more expensive "look happened here" -- always-on first tier, not a stand-alone diagnostic authority. Where this dissertation's results fall short of unconstrained-compute 
+comparators (Chapter~\ref{ch:results}), this framing is the honest context for that gap, not an excuse for it: the two systems are answering different clinical questions under 
+different resource constraints, and the comparison is presented with that caveat stated plainly rather than glossed over.
 
 \section{Research Questions}
 
 This dissertation is organised around four research questions.
 
-\textbf{RQ1.} Can a quantised (w4a4) spatio-temporal convolutional neural network, converted to a spiking neural network via ANN-to-SNN conversion, and deployed on real BrainChip AKD1000 v1 silicon, achieve clinically meaningful per-patient sensitivity at microjoule-level energy cost per inference?
+\textbf{RQ1.} Can a quantised (w4a4) spatio-temporal convolutional neural network, converted to a spiking neural network via ANN-to-SNN conversion, and deployed on real BrainChip 
+AKD1000 v1 silicon, achieve clinically meaningful per-patient sensitivity at microjoule-level energy cost per inference?
 
-\textbf{RQ2.} How far does a shared, cross-patient representation generalise to entirely unseen patients under a rigorous leave-one-patient-out (LOPO) evaluation, and what does the \emph{shape} of that result -- not merely its mean -- reveal about heterogeneity in ictal presentation across patients?
+\textbf{RQ2.} How far does a shared, cross-patient representation generalise to entirely unseen patients under a leave-one-patient-out (LOPO) evaluation, and what does 
+the \emph{shape} of that result -- not merely its mean -- reveal about heterogeneity in ictal presentation across patients?
 
-\textbf{RQ3.} Does including a patient's own data measurably improve that patient's detection outcome, when this is isolated as the single variable under test -- and separately, does the narrower technique of per-patient fine-tuning on top of a frozen shared model offer any further gain, or introduce sensitivities (to pool size, to training seed) worth disclosing in their own right?
+\textbf{RQ3.} Does including a patient's own data measurably improve that patient's detection outcome, when this is isolated as the single variable under test -- and separately, 
+does the narrower technique of per-patient fine-tuning on top of a frozen shared model offer any further gain, or introduce sensitivities (to pool size, to training seed) worth 
+disclosing in their own right?
 
-\textbf{RQ4.} Where a technique's headline figure depends on how its operating threshold was chosen, does that figure survive a methodologically stricter, statistically grounded re-calibration, or was the original figure -- however honestly obtained at the time -- optimistic in a way that needs to be disclosed and corrected?
+\textbf{RQ4.} Where a technique's headline figure depends on how its operating threshold was chosen, does that figure survive a stricter, more statistically grounded 
+re-calibration, or was the original figure -- however honestly obtained at the time -- optimistic in a way that needs to be disclosed and corrected?
 
-RQ4 exists because this project's own evaluation practice was, at one stage, itself in need of exactly this kind of scrutiny (Section~\ref{sec:results-c2}), and the resolution of that question is treated as a dissertation finding in its own right, not a housekeeping detail relegated to a footnote.
+RQ4 exists because this project's own evaluation practice was, at one stage, itself in need of exactly this kind of scrutiny (Section~\ref{sec:results-c2}), and the resolution of that 
+question is treated as a report finding in its own right.
 
 \section{What This Dissertation Covers}
 
-This dissertation reports, in full: an end-to-end pipeline running from raw scalp EEG through a quantised CNN, ANN-to-SNN conversion, and deployment on physical AKD1000 v1 silicon, with measured, hardware-verified energy and latency figures; a full 15-fold leave-one-patient-out cross-validation of cross-patient generalisation, with both the raw, unfiltered figure and the collapse-diagnostic-corrected figure stated explicitly alongside one another; a worked demonstration of an evaluation pitfall this project encountered in its own practice -- selecting an operating threshold by reading a performance metric off the same data being reported -- and the conformal-prediction-based correction applied to it; and documented, mechanism-level negative results, including three independent domain-adaptation techniques converging on the same patient's failure. What any of this amounts to, and whether it constitutes a meaningful advance, is left for the reader to judge against the evidence presented, rather than asserted here in advance.
+This dissertation reports, in full:
+\begin{enumerate}
+    \item An end-to-end pipeline running from raw scalp EEG through a quantised CNN, ANN-to-SNN conversion, and deployment on physical AKD1000 v1 silicon, complete with measured, 
+    hardware-verified energy and latency figures.
+    \item A full 15-fold leave-one-patient-out cross-validation of cross-patient generalisation, accompanied by the bimodal distribution analysis that points to genuine inter-patient 
+    physiological heterogeneity rather than a simple data-volume shortfall.
+    \item A formal collapse diagnostic (gating on window specificity, predicted block length, and positive-window fraction) to systematically distinguish true seizure discrimination 
+    from over-firing and under-firing artefacts.
+    \item Primary personalisation evidence from a controlled \texttt{pool6-minus-X} versus \texttt{pool7} experiment, isolating target-patient data inclusion as a single variable 
+    across seven patients.
+    \item A secondary evaluation of per-patient fine-tuning, quantifying the impact of background pool size on collapse-pass rates alongside a split-conformal-prediction calibration 
+    to correct optimistic, threshold-selected false-positive rates ($FP/hr$).
+    \item Documented, mechanism-level negative results, including four independent domain-adaptation and feature-engineering candidates (DANN, CORAL, SSL pretraining, and Candidate G) 
+    converging on the same patient's structural failure.
+\end{enumerate}
 
+What any of this amounts to, and whether it constitutes a meaningful advance, is left for the reader to judge against the evidence presented, rather than asserted here in advance.
 \section{Dissertation Structure}
 
-Chapter~\ref{ch:background} reviews the clinical and technical background: the CHB-MIT dataset and standard evaluation conventions in automated seizure detection, the AKD1000's neuromorphic architecture and its hard constraints, the ANN-to-SNN conversion toolchain, and the two comparator systems -- \citet{shoeb2009} and \citet{ali2024} -- against which this project's per-patient and cross-patient results are respectively judged. Chapter~\ref{ch:methodology} describes the dataset preparation, model architecture, training regimes (the frozen shared pool, an isolated own-data-inclusion probe, per-patient fine-tuning, and a separate data-efficiency probe), and the evaluation protocol, including the distinction between full-recording LOPO evaluation and the smaller chronological test-slice used elsewhere in the pipeline -- a distinction whose conflation produced a real, caught, and corrected bug, and which is stated explicitly here for that reason. Chapter~\ref{ch:results} reports the LOPO cross-patient generalisation result; the dissertation's primary personalisation evidence, an isolated comparison showing the effect of including a patient's own data in an otherwise-fixed training pool; a smaller, secondary treatment of per-patient fine-tuning framed around pool-size and training-seed effects, including the conformal-calibrated correction to an earlier optimistic figure; the cross-candidate convergence finding; and the hardware deployment figures -- throughout stating any raw or optimistic figure in full before the corrected figure that supersedes it. Chapter~\ref{ch:discussion} returns to the triage-device framing with concrete numbers in hand, discusses the physiological-heterogeneity account of cross-patient failure, and treats the project's own caught methodological errors as a connected narrative and a contribution rather than a list of embarrassments. Chapter~\ref{ch:conclusion} summarises the answers to RQ1--RQ4 and outlines future work.
+\begin{description}
+    \item[Chapter~\ref{ch:background} (Background and Related Work)] Reviews the clinical and technical background: the CHB-MIT dataset and standard evaluation conventions in 
+    automated seizure detection, the AKD1000's neuromorphic architecture and its hard constraints, the ANN-to-SNN conversion toolchain, and the two 
+    comparator systems --\citet{shoeb2009} and \citet{ali2024} --against which this project's per-patient and cross-patient results are respectively judged.
+    \item[Chapter~\ref{ch:methodology} (Methodology)] Describes dataset preparation, model architecture, training regimes (the frozen shared pool, an isolated own-data-
+    inclusion probe, per-patient fine-tuning, and a separate data-efficiency probe), and the evaluation protocol, including the distinction between full-recording LOPO evaluation and 
+    the smaller chronological test-slice used elsewhere in the pipeline.
+    \item[Chapter~\ref{ch:results} (Results)] Reports the LOPO cross-patient generalisation result; the dissertation's primary personalisation evidence, an isolated comparison showing
+     the effect of including a patient's own data in an otherwise-fixed training pool; a smaller, secondary treatment of per-patient fine-tuning framed around pool-size and 
+     training-seed effects, including the conformal-calibrated correction to an earlier optimistic figure; the cross-candidate convergence finding; and the hardware deployment
+    figures -- throughout stating any raw or optimistic figure in full before the corrected figure that supersedes it.
+    \item[Chapter~\ref{ch:discussion} (Discussion)] Returns to the triage-device framing with concrete numbers in hand, discusses the physiological-heterogeneity account of 
+    cross-patient failure, and treats the project's own caught methodological errors as a connected narrative and a contribution rather than a list of embarrassments.
+    \item[Chapter~\ref{ch:conclusion} (Conclusion)] Summarises the answers to RQ1--RQ4 and outlines future work.
+\end{description}

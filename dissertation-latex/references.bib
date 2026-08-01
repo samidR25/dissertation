@@ -4,7 +4,28 @@
 % briefs/product documentation rather than peer-reviewed papers -- cited
 % as such, not as journal articles.
 
+@article{li2024xylo,
+  author  = {Li, RuiXin and Zhao, Guoxu and Wang, Dong and Xing, Yannan and Ling, Yuya and Qiao, Ning and Muir, Dylan Richard and Burelo, Karla and Khoei, Mina},
+  title   = {Real-Time Sub-Milliwatt Epilepsy Detection Implemented on a Spiking Neural Network Edge Inference Processor},
+  journal = {Computers in Biology and Medicine},
+  volume  = {183},
+  pages   = {109225},
+  year    = {2024},
+  doi     = {10.1016/j.compbiomed.2024.109225}
+}
+
 % ── Dataset and epidemiological citations ───────────────────────────────
+
+@article{fisher2014,
+  author  = {Fisher, Robert S. and Acevedo, Carlos and Arzimanoglou, Alexis and Bogacz, Alicia and Cross, J. Helen and Elger, Christian E. and Engel, Jerome and Forsgren, Lars and French, Jacqueline A. and Glynn, Mike and Hesdorffer, Dale C. and Lee, B. I. and Mathern, Gary W. and Mosh{\'e}, Solomon L. and Perucca, Emilio and Scheffer, Ingrid E. and Tomson, Torbj{\"o}rn and Watanabe, Masako and Wiebe, Samuel},
+  title   = {ILAE Official Report: A Practical Clinical Definition of Epilepsy},
+  journal = {Epilepsia},
+  volume  = {55},
+  number  = {4},
+  pages   = {475--482},
+  year    = {2014},
+  doi     = {10.1111/epi.12550}
+}
 
 @article{goldberger2000,
   author  = {Goldberger, Ary L. and Amaral, Luis A. N. and Glass, Leon and Hausdorff, Jeffrey M. and Ivanov, Plamen Ch. and Mark, Roger G. and Mietus, Joseph E. and Moody, George B. and Peng, Chung-Kang and Stanley, H. Eugene},
@@ -133,4 +154,24 @@
   year      = {2024},
   publisher = {The Royal Society},
   doi       = {10.1098/rsos.230601}
+}
+
+@article{tatum2022,
+  author  = {Tatum, William O. and Rubboli, Guido and Kaplan, Peter W. and Mirsatari, Seyed M. and Radhakrishnan, Kurupath and Gloss, David and Caboclo, Luis O. and Drislane, Frank W. and Koutroumanidis, Michalis and Schomer, Donald L. and Kasteleijn-Nolst Trenite, Dorothee and Cook, Mark and Beniczky, Sandor},
+  title   = {Minimum Standards for Inpatient Long-Term Video-Electroencephalographic Monitoring: A Clinical Practice Guideline of the International League Against Epilepsy and International Federation of Clinical Neurophysiology},
+  journal = {Epilepsia},
+  volume  = {63},
+  number  = {4},
+  pages   = {290--315},
+  year    = {2022},
+  doi     = {10.1111/epi.16977},
+  note    = {The source behind the project codebase's "ILAE minimum standards for LT-EEG monitoring" reference; I have not directly confirmed the specific 10-12s sustained-detection figure appears verbatim in this guideline, only that the guideline itself is real and matches the description}
+}
+
+@misc{chbmit_subject_info,
+  author = {{PhysioNet}},
+  title  = {SUBJECT-INFO --- CHB-MIT Scalp EEG Database},
+  year   = {2010},
+  url    = {https://physionet.org/content/chbmit/1.0.0/SUBJECT-INFO},
+  note   = {Per-patient age and gender only; does not include seizure type or focus localization}
 }

@@ -3,33 +3,135 @@
 
 \section{Dataset and Preprocessing}
 
-I use the CHB-MIT paediatric scalp EEG dataset \citep{goldberger2000}, restricted to the 18 channels common across all included patients' recordings. Data are split chronologically, in a 70:15:15 ratio -- the earliest 70\% of each patient's recording assigned to training, the next 15\% to validation, and the final, latest 15\% held out as test -- rather than by conventional random stratification. The split configuration used throughout this project is fixed as a single, shared setting rather than re-derived per script:
+For this project I use the CHB-MIT paediatric scalp EEG dataset \citep{goldberger2000}, restricted to the 18 channels common across all included patients' recordings. Data is split chronologically, 
+in a 70:15:15 ratio -- the earliest 70\% of each patient's recording assigned to training, the next 15\% to validation, and the final, latest 15\% held out as test -- rather than by 
+conventional random stratification. The split configuration used throughout this project is fixed as a single, shared setting rather than re-derived per script:
 
 \begin{verbatim}
 split_ratios: tuple = (0.70, 0.15, 0.15)   # chronological train/val/test
 \end{verbatim}
 
-This choice was deliberate and is justified concretely, not left to the reader to take on trust. Consider what a stratified (randomly shuffled) split would permit: a five-second window drawn from the middle of a given seizure event could land in the training set, while a temporally adjacent window from that same seizure event -- sharing near-identical waveform morphology, since seizure activity evolves smoothly rather than discontinuously from one moment to the next -- could land in the test set purely by chance. A model evaluated this way could score well by effectively recognising a near-duplicate of something it had already seen, rather than by genuinely generalising to unseen seizure activity, and no real deployed device could ever benefit from this arrangement, since a device monitoring a patient in real time only ever has access to that patient's past, never their future. Chronological splitting removes this possibility structurally: nothing in the test set can be a near-neighbour of anything in training, because everything in training necessarily precedes everything in test in time. I rejected stratified splitting for this reason, and I consider chronological splitting a required baseline for methodological honesty in this problem, not merely one reasonable option among several.
+Every result reported in Chapter~\ref{ch:results} is evaluated against this split's reserved, final 15\% -- saved and loaded throughout this project's codebase as \texttt{X\_test}/\texttt{y\_test} -- confirmed directly in \texttt{eval\_event\_level.py}, which refuses to run without an \texttt{X\_test} array present in the dataset file it is pointed at.
 
-\realfig{eeg_electrode_montage.png}{0.8}{Standard EEG electrode placement (10-20 system) for the 18-channel montage used in this project. Verified against a real channel dump from \texttt{chb01\_01.edf}: only FT9 and FT10 are genuinely extra electrodes outside the 18-channel set; the remaining three nominally "excluded" channel labels (P7-T7, FT10-T8, and a duplicate T8-P8) are re-pairings of electrodes already present in the montage, not additional physical electrode sites.}{fig:eeg-montage}
+This choice was deliberate and made because consider what a stratified (randomly shuffled) split would permit: a five-second 
+window drawn from the middle of a given seizure event could land in the training set, while a temporally adjacent window from that same seizure event -- sharing near-identical 
+waveform morphology, since seizure activity smoothly builds up and is not disjointed in nature -- could land in the test set purely by chance. A model evaluated 
+this way could score well by effectively recognising a near-duplicate of something it had already seen, rather than by genuinely generalising to unseen seizure activity, and no real 
+deployed device could ever benefit from this, since a device monitoring a patient in real time only ever has access to that patient's past, never their future. 
+Chronological splitting removes this possibility structurally: nothing in the test set can be a near-neighbour of anything in training, because everything in training necessarily 
+precedes everything in test in time. I rejected stratified splitting for this reason, and I consider chronological splitting a required baseline for methodological honesty in this 
+problem, not merely one reasonable option among several.
+
+\subsection{Signal Preprocessing}
+
+Each recording is preprocessed independently, file by file, before any windowing or splitting: a 0.5--40Hz bandpass filter (FIR, Hamming window) removes slow DC drift and high-frequency 
+noise outside the range relevant to ictal activity; a 60Hz notch filter removes US mains interference (CHB-MIT was recorded at Boston Children's Hospital, hence 60Hz rather than the 
+50Hz appropriate for UK recordings and the evidence motivating this filter is given in Figure~\ref{fig:eda-psd}); and a Common Average Reference (CAR) -- subtracting the 
+mean of all channels from each individual channel -- reduces noise common to every electrode, such as movement artefact or shared electrical interference. Recordings are resampled to 
+256Hz where necessary, though this is a no-op for CHB-MIT, which is already recorded at that rate; the resampling step is kept explicit in the pipeline regardless, for reproducibility 
+if this pipeline is ever applied to a differently-sampled dataset.
+
+\realfig{eda_psd.png}{0.85}{Power spectral density across all 18 channels of a sample CHB-MIT recording, computed during exploratory data analysis. The sharp peaks at 60Hz and its harmonics are consistent with US mains electrical interference (CHB-MIT was recorded at Boston Children's Hospital) -- this observation directly motivated the 60Hz notch filter described above.}{fig:eda-psd}
+
+Two further implementation details are worth stating explicitly, since both reflect real bugs avoided rather than arbitrary choices. First, channels are selected by \emph{index} (positions 0--17), not by name: chb01's recording contains two channels both literally named \texttt{T8-P8} (MNE renames the second on load to avoid a naming collision), and a name-based channel lookup would silently select the wrong one or crash depending on load order. Verified against all 22 patients' summary files, positions 0--17 correspond to the same 18 physical channels across every patient, making index-based selection both correct and consistent. Second, EDF files are never concatenated across files before windowing: CHB-MIT recordings for a given patient are split across multiple files with a real hardware gap of approximately 10 seconds between them, and treating this as if it were continuous signal would create a false continuity across the gap, corrupting any window that happened to straddle a file boundary. Every window in this dissertation's results is built from a single EDF file's data only.
+
+Each recording is then divided into fixed 2-second windows with a 1-second stride (50\% overlap) to maximise training density. To ensure label integrity, windows are designated positive only when $\ge 50\%$ of their duration overlaps an annotated seizure. This criterion removes transitional onset/offset windows with ambiguous ground truth, to establish a clean, unambiguous decision boundary.
+
+\realfig{eeg_electrode_montage.png}{0.85}{Standard EEG electrode placement (10-20 system) for the 18-channel montage used in this project. Verified against a real channel dump from \texttt{chb01\_01.edf}: only FT9 and FT10 are genuinely extra electrodes outside the 18-channel set; the remaining three nominally "excluded" channel labels (P7-T7, FT10-T8, and a duplicate T8-P8) are re-pairings of electrodes already present in the montage, not additional physical electrode sites.}{fig:eeg-montage}
 
 \subsection{Chronological Splitting and SMOTE Ordering}
 
 Given the low prevalence of seizure-positive windows relative to background EEG (typically 1--3\% of windows for a given patient), I apply class-imbalance correction via SMOTE (Synthetic Minority Over-sampling Technique) to the training portion of each split. It is worth explaining candidly how I arrived at the specific ordering used throughout this dissertation, because it was not obvious to me from the outset, and I do not want to present the final, correct version as though it had been the plan from day one.
 
-Early in this project, I applied SMOTE to each patient's full dataset \emph{before} carving out the chronological split -- generating synthetic minority-class (seizure) samples across the whole recording, then splitting the resulting, already-augmented dataset into train/validation/test. My reasoning at the time was pragmatic rather than methodologically motivated: I was working to get a complete, running pipeline in place quickly, given how much of the project's early timeline was consumed by hardware toolchain setup and getting the AKD1000 development environment itself working, and augmenting before splitting was the simpler code path given how the dataset-building scripts were originally structured. It was only once I was auditing intermediate outputs for an unrelated check that I noticed synthetic samples generated from what should have been strictly training-only data were structurally capable of having near-identical neighbours land across the split boundary in validation -- meaning a portion of what I was calling "unseen validation performance" could, in principle, reflect the model recognising a synthetic near-duplicate of something it had implicitly been shown, rather than genuine generalisation. I did not adopt the corrected ordering because it was recognised as best practice in advance; I adopted it because auditing my own intermediate data surfaced a real leakage risk I had not anticipated, and I corrected it project-wide once I found it. SMOTE is applied only to the already-separated post-split training portion throughout every result reported in this dissertation, never to validation or test data, and never before the chronological split itself is made.
+Early in this project, I applied SMOTE to each patient's full dataset \emph{before} carving out the chronological split -- generating synthetic minority-class (seizure) samples across 
+the whole recording, then splitting the resulting, already-augmented dataset into train/validation/test.
+It was only once I 
+was auditing intermediate outputs for an unrelated check that I noticed synthetic samples generated from what should have been strictly training-only data were structurally capable of 
+having near-identical neighbours land across the split boundary in validation -- meaning a portion of what I was calling "unseen validation performance" could, in principle, reflect 
+the model recognising a synthetic near-duplicate of something it had implicitly been shown, rather than genuine generalisation. I corrected this project-wide once 
+I found it. SMOTE is now applied \emph{only} to the already-separated post-split training portion throughout every result reported in this dissertation, never to validation or test data, and 
+never before the chronological split itself is made.
+
+The undersampling ratio applied before SMOTE differs between single-patient and pooled builds, and this difference is deliberate rather than an inconsistency: 
+single-patient builds (like C2) undersample the majority (non-seizure) class to a \textbf{10:1} ratio relative to the minority class before SMOTE rebalances it further, 
+while pooled/multi-patient builds (pool7, pool6-minus-X, and every LOPO fold) use a tighter \textbf{5:1} ratio, applied \emph{per domain} (i.e.\ per contributing patient) before 
+pooling. The tighter 5:1 ratio for pooled builds was a direct response to the compute constraints described in the next subsection: a 10:1 ratio applied per-patient across seven or
+more pooled patients produced a combined training array too large to reliably fit in memory during SMOTE's own internal neighbour-search step, and 5:1 was the ratio found to keep 
+pooled builds within the available RAM without materially changing the class-imbalance-correction principle at work.
+
+\subsection{Development Environment Constraints}
+
+It is worth stating plainly, since it is not otherwise visible anywhere in this dissertation's results, that every design decision above -- and several architectural and 
+experimental-scope decisions elsewhere in this chapter -- were made under binding compute constraints, not chosen freely from an unconstrained menu of options. All development, 
+training, and dataset construction for this project ran on a single laptop via WSL2 (Windows Subsystem for Linux), with approximately 11GB of RAM available to the 
+environment and a shared disk budget that had to be actively monitored during larger multi-patient builds.
+
+This constraint shaped concrete decisions documented elsewhere in this dissertation, not just as background colour: the SMOTE undersampling ratios above were tuned specifically to fit within this RAM budget; the pool7/pool6-minus-X experiments (Section~\ref{sec:results-owndata}) were run as a bounded, seven-patient expansion rather than a larger pool, in part because dataset-building time and memory footprint scale with pool size on this hardware; and an out-of-memory bug in the pool-dataset-building script (an unused array construction consuming approximately 6.85GB unnecessarily) reliably crashed builds on this machine before it was identified and fixed, a bug that would very plausibly not have surfaced at all on a machine with a larger RAM budget. Training run duration was also a live constraint on experimental scope: individual LOPO folds and multi-patient pool builds took long enough (multiple hours per full sweep) that iteration speed was a genuine factor in which candidate techniques were screened at a single seed/patient before committing to a fuller multi-seed or multi-patient confirmation run, a screening discipline described further in Section~\ref{sec:results-c2} and Chapter~\ref{ch:discussion}.
 
 \section{Model Architecture}
 
-\realfig{pipeline_architecture_full.png}{1}{A comprehensive, end-to-end pipeline diagram: raw scalp EEG input, preprocessing and chronological splitting, the seizure\_cnn\_v2 architecture (with layer-by-layer block structure), w4a4 quantisation, ANN-to-SNN conversion via cnn2snn, and final deployment onto AKD1000 v1 silicon, annotated at each stage with the relevant section number in this chapter.}{fig:pipeline-full}
+\realfig{pipeline_architecture_full.png}{1}{An end-to-end pipeline diagram: raw scalp EEG input, preprocessing and chronological splitting, the seizure\_cnn\_v2 architecture (with layer-by-layer block structure), w4a4 quantisation, ANN-to-SNN conversion via cnn2snn, and final deployment onto AKD1000 v1 silicon, annotated at each stage with the relevant section number in this chapter.}{fig:pipeline-full}
 
 \subsection{Spatio-Temporal CNN (\texttt{seizure\_cnn\_v2})}
 
 \realfig{cnn_architecture_layers.png}{1}{Layer-by-layer diagram of seizure\_cnn\_v2: three repeated Conv-BN-Pool-ReLU blocks, followed by Flatten, Dense(64), and Dense(2, softmax). Generated dynamically from the real \texttt{build\_seizure\_cnn\_v2} definition, reading actual per-layer parameter counts rather than hardcoded figures.}{fig:cnn-layers}
 
-The base architecture, referred to throughout as \texttt{seizure\_cnn\_v2}, is a compact spatio-temporal convolutional neural network: three repeated blocks of convolution, batch normalisation, max pooling, and ReLU activation, followed by a flatten operation and two dense layers (64 units, then 2 units with softmax output for the binary seizure/non-seizure decision). Hand-traced parameter counts give approximately 39,392 parameters in the convolutional trunk and 98,434 in the dense head, for a total of approximately 137,826 -- consistent with the figures used elsewhere in this chapter. I implemented and evaluated both a single-channel raw-EEG input variant and a three-channel short-time Fourier transform (STFT) variant; the raw single-channel variant is the one used for the results reported in Chapter~\ref{ch:results} unless otherwise stated.
+The base architecture, referred to throughout as \texttt{seizure\_cnn\_v2}, is a compact spatio-temporal convolutional neural network. It is worth describing its three convolutional blocks precisely rather than as three identical repeated units, since they are not: the first block uses a deliberately large, asymmetric kernel -- 32 filters at $(9,7)$ with stride $(1,4)$ -- chosen to capture broad spatio-temporal structure across both the channel and time axes in a single layer, followed by $(1,2)$ max pooling; the second block uses a more conventional $64$-filter $(3,3)$ kernel with $(2,2)$ pooling; the third block reduces back down to $32$ filters at $(3,3)$ with $(2,2)$ pooling, giving the network a $32\rightarrow64\rightarrow32$ bottleneck filter-count shape rather than a monotonically increasing one. Each convolutional block is followed by batch normalisation, then the pooling and ReLU activation described above. The network concludes with a flatten operation and two dense layers (64 units, no bias, then 2 units with softmax output for the binary seizure/non-seizure decision).
 
-The placement of batch normalisation directly after each convolutional layer, rather than in an alternative ordering, is itself a methodological finding rather than an arbitrary architectural choice: an earlier ordering produced a specific failure during ANN-to-SNN conversion (a form of representational collapse), which I diagnosed and corrected during an earlier phase of this project. The architecture described here reflects that correction.
+Two further architectural details reflect some toolchain constraints rather than design preferences: the first convolutional layer uses \texttt{padding='valid'} specifically as a workaround for a bug encountered in \texttt{quantizeml} version 1.2.3, and no two max-pooling layers are ever placed consecutively, a constraint imposed by the AKD1000 v1 hardware mapping rather than a modelling choice.
+
+Parameter counts are confirmed directly against the model's own \texttt{model.summary()} output: contains 137,826 total parameters (39,392 in the convolutional trunk; 98,434 in the dense head). While Keras reports a unquantised \texttt{float32} footprint of 538.38~KiB, the compiled \texttt{w4a4} spiking model binaries (\texttt{.fbz}) consistently measure 166,450~bytes ($\approx$162.5~KiB) on disk across all training regimes. This footprint exceeds theoretical 4-bit weight storage ($\approx$68.9~KiB) due to container format overhead, layer metadata, and full-precision bias storage. I implemented and evaluated both a
+single-channel raw-EEG input variant and a three-channel short-time Fourier transform
+(STFT) variant; the raw single-channel variant is the one used for the results reported in
+Chapter 4 unless otherwise stated.
+
+Placing Batch Normalisation directly after each convolutional layer was critical as alternative orderings caused representational collapse during ANN-to-SNN conversion. The final design incorporates this fix.
+\subsection{Training Procedure}
+
+All training in this project -- C1, pool7/pool6-minus-X, and the base checkpoint from which C2 fine-tuning starts -- uses a consistent procedure: the Adam optimiser, sparse categorical 
+cross-entropy loss, a batch size of 32, early stopping on validation loss (patience 15 epochs), and a learning-rate reduction schedule (halving on plateau, patience 7 epochs, down to a 
+floor of $1\times10^{-7}$). Class imbalance is corrected via SMOTE at the data level (Section~\ref{sec:eval-protocol} above) \emph{and}, separately, via explicit class weighting during 
+training (the seizure class weighted 1.5$\times$ relative to the non-seizure class) -- these two corrections are applied together, not as alternatives to one another as one does not 
+supersede the other.
+
+Reproducibility is handled by explicit, deterministic seeding at the start of every training run (\texttt{random.seed}, \texttt{np.random.seed}, and \texttt{tf.random.set\_seed}, 
+all set from the same value; default 42, though the canonical C2 results reported in Chapter~\ref{ch:results} use seed 256 specifically). The 
+seed-sensitivity discussion in Section~\ref{sec:results-c2} concerns genuine variance in outcome \emph{across} different seed values, not a lack of within-run determinism as each 
+individual run is fully reproducible given its seed.
+
+ 
+Additionally, the early-stopping validation subset used during training is not simply the chronological validation portion from the 70:15:15 split, because doing so carries an identified risk for 
+at least one patient, addressed proactively rather than only after being observed to go wrong. chb03's chronological validation portion happened to contain zero 
+seizure windows (all three of chb03's annotated seizures fell entirely within the chronological training or test portions), which meant early stopping monitored against that 
+chronological validation split for this patient would have been driven by just noise rather than any genuine seizure-relevant signal, had the naive approach been used.
+In contrast to this chb10, never posed this risk, because its chronological validation portion happened to contain 66 seizure windows. The fix applied throughout this project stratifies a seizure-guaranteed validation subset \emph{from within the 
+already-isolated training portion only}, used exclusively for early-stopping and checkpoint selection during training. 
+
+This is stated explicitly because it must not be confused with violating the chronological-splitting principle, described at the start of this chapter: 
+every result reported in Chapter~\ref{ch:results} is still evaluated exclusively against the untouched, fully chronological \texttt{X\_test} split, confirmed directly 
+in \texttt{eval\_event\_level.py}, which refuses to run without it:
+
+\begin{verbatim}
+assert 'X_test' in data.files, f"{data_path} has no X_test split"
+X_eval = data['X_test'].astype('float32', copy=False)
+\end{verbatim}
+
+\noindent and the stratified carve-out itself, in \texttt{train\_baseline.py}, is explicit in its own docstring that it operates only on the already-isolated training pool, never on 
+validation or test data:
+
+\begin{verbatim}
+def _stratified_real_split(data, seed=42, test_size=0.20, ...):
+    """
+    Splits the REAL, undersampled, pre-SMOTE train pool (X_train_real/
+    y_train_real) stratified, so val is GUARANTEED to contain seizure
+    windows regardless of how they fall chronologically. SMOTE applied
+    only to the resulting train portion. Val is real, untouched -- used
+    ONLY for early-stopping/checkpoint selection, never reported as a
+    held-out metric (that's still the chronological X_test).
+    """
+\end{verbatim}
+
+\noindent The stratified carve-out affects only which checkpoint gets selected during training, never what that checkpoint is subsequently evaluated against.
 
 \subsection{Quantisation (w4a4) and Hardware Constraints}
 
@@ -37,50 +139,115 @@ Prior to conversion, the trained ANN is quantised using BrainChip's \texttt{quan
 
 \subsection{ANN-to-SNN Conversion}
 
-Conversion from the trained, quantised ANN to its spiking equivalent is performed via BrainChip's \texttt{cnn2snn} toolchain, following the conceptual approach set out by \citet{rueckauer2017} and the LIF formulation given in Equation~\ref{eq:lif} (Chapter~\ref{ch:background}). Every conversion call in this project's codebase is made within an explicit \texttt{AkidaVersion.v1} context manager:
+Conversion from the trained, quantised ANN to its spiking equivalent is performed via BrainChip's \texttt{cnn2snn} toolchain, following the conceptual approach set out by 
+\citet{rueckauer2017} and the LIF formulation given in Equation~\ref{eq:lif} (Chapter~\ref{ch:background}). Every conversion call in this project's codebase is made within an 
+explicit \texttt{AkidaVersion.v1} context manager:
 
 \begin{verbatim}
 with set_akida_version(AkidaVersion.v1):
     akida_model = cnn2snn.convert(quantised_model)
 \end{verbatim}
 
-\noindent ensuring the conversion targets the correct hardware generation rather than silently defaulting to an incompatible one -- a small but load-bearing implementation discipline I maintained throughout the project's codebase, after an early instance of omitting it produced a conversion that silently targeted the wrong hardware generation.
+\noindent ensuring the conversion targets the correct hardware generation rather than silently defaulting to an incompatible one. 
+This is a standing project rule, not a response to a specific documented incident: \texttt{cnn2snn}'s \texttt{convert()} defaults to 
+targeting Akida 2.0 rather than the AKD1000's v1 hardware if this context manager is omitted, and doing so would fail silently rather than raising an obvious error.
 
 \section{Training Regimes}
 
 \subsection{C1 --- Frozen Shared Pool (chb01/02/05)}
 
-The foundational training regime, referred to throughout as C1, trains a single shared model once on a fixed three-patient pool (chb01, chb02, chb05) and evaluates it cold against other patients, with no further adaptation. It is important to state C1's actual role in this project precisely, since it would be easy to over-read its purpose: C1 was not built or used as this dissertation's primary comparative result. Its function was largely infrastructural -- establishing a working, reproducible baseline against which later pipeline bugs could be caught (several of the methodological errors discussed in Chapter~\ref{ch:discussion} were first noticed as unexpected behaviour in C1-based runs), and providing the starting checkpoint from which the pool was later scaled up in stages (to four, then seven, then eight patients, as described below and in Chapter~\ref{ch:results}). Where C1 does appear in later comparative tables (Section~\ref{sec:results-c2}), it is specifically as the smaller-pool reference point in a pool-\emph{size} comparison, not as this dissertation's central performance claim.
+The foundational training regime, referred to throughout as C1, trains a single shared model once on a fixed three-patient pool (chb01, chb02, chb05) and evaluates it cold against 
+other patients, with no further adaptation. It is important to state C1's actual role in this project precisely, since it would be easy to over-read its purpose due to its small size and simplicity:
+C1 was not built or used as this dissertation's primary comparative result. Its function was largely infrastructural -- establishing a working, reproducible baseline used as a fast, 
+low-cost testbed throughout this project's development (several of the methodological errors discussed in Chapter~\ref{ch:discussion} were caught during earlier stages of this project, 
+though it was not every case that C1-based runs specifically were each was first noticed, rather than other parts of the pipeline), and providing the starting checkpoint 
+from which the pool was later scaled up in stages (to four, then seven, then eight patients, as described below and in Chapter~\ref{ch:results}). Where C1 does appear in later comparative 
+tables (Section~\ref{sec:results-c2}), it is specifically as the smaller-pool reference point in a pool-\emph{size} comparison, not as this dissertation's central performance claim.
+
+C1's deliberately small scope reflects a working principle I had aimed to follow throughout this project, given the 
+compute constraints described in Section~\ref{sec:eval-protocol} above, every new technique or pipeline change was first screened on the smallest, cheapest configuration that could 
+plausibly reveal whether it worked at all -- a single seed, a small patient set, a short training run -- before committing the time and memory budget to a fuller multi-seed or 
+multi-patient confirmation. C1's three-patient scope was the first instance of this "fail cheaply, iterate quickly" discipline. A three-patient training run is fast enough to iterate 
+on repeatedly, which is the practical value of starting there rather than at a larger pool size, regardless of which specific issues were or weren't caught at that scale in practice. 
+The same ethos is acted upon again later in this project's development, in the single-seed, small-patient pilots used to screen the domain-adaptation candidates in 
+Section~\ref{sec:results-convergence} before any of them were ruled out or confirmed at fuller scale.
 
 \subsection{Pool7 and pool6-minus-X --- The Primary Own-Data-Inclusion Probe}
 
-This dissertation's primary evidence for the effect of personalisation is drawn from a different, later training regime: a seven-patient frozen pool (chb01, chb02, chb05, chb06, chb07, chb09, chb20; referred to as pool7), evaluated against each of its own constituent patients' full recordings. Critically, to isolate whether a patient's \emph{own data being present in the pool} is what drives any observed benefit -- as opposed to the pool simply being larger -- I additionally trained a matched six-patient pool excluding each target patient in turn (pool6-minus-X) and evaluated it zero-shot against that same excluded patient, holding pool size approximately constant across the comparison (six patients versus seven) and varying only the one factor of interest. This pool6-minus-X-versus-pool7 comparison, detailed in Section~\ref{sec:results-owndata}, is now this dissertation's leading evidence for the general claim that a patient's own data measurably improves their own detection outcome. It is worth stating plainly that this is a related but mechanistically distinct claim from the C2 fine-tuning regime described next: pool7/pool6-minus-X demonstrate this effect via \emph{pool composition} on an otherwise still-frozen shared model, whereas C2 demonstrates a related effect via explicit \emph{per-patient fine-tuning}. The two should not be read as the same experiment conducted at different scales.
+This dissertation's primary evidence for the effect of personalisation is drawn from a different training regime with a seven-patient frozen pool 
+(chb01, chb02, chb05, chb06, chb07, chb09, chb20; referred to as pool7), evaluated against each of its own constituent patients' full recordings. This was done to isolate whether a 
+patient's \emph{own data being present in the pool} is what drives any observed benefit, as opposed to the pool simply being larger. In turn, I also trained a matched six-patient 
+pool excluding each target patient in turn (pool6-minus-X) and evaluated it zero-shot against that same excluded patient, holding pool size approximately constant across the comparison
+(six patients versus seven) and varying only the one factor of interest. This pool6-minus-X-versus-pool7 comparison, detailed in Section~\ref{sec:results-owndata}, is now this 
+dissertation's leading evidence for the general claim that a patient's own data measurably improves their own detection outcome. It is worth stating plainly that this is a related but 
+mechanistically distinct claim from the C2 fine-tuning regime described next: pool7/pool6-minus-X demonstrate this effect via \emph{pool composition} on an otherwise still-frozen shared 
+model, whereas C2 demonstrates a related effect via explicit \emph{per-patient fine-tuning}. The two should not be read as the same experiment conducted at different scales.
 
 \subsection{C2 --- Per-Patient Fine-Tuning}
 
-A second, narrower personalisation-related regime, referred to as C2, freezes the C1 model's convolutional trunk (through the third ReLU activation, approximately 38,900 parameters) and fine-tunes only the remaining dense head (approximately 98,400 parameters) on each of a canonical set of four personalisation-eligible patients (chb10, chb13, chb15, chb16) individually. This dissertation's C2-related results (Section~\ref{sec:results-c2}) now primarily support a narrower discussion of pool-size and training-seed effects, rather than serving as this dissertation's central personalisation evidence, a role now held by Section~\ref{sec:results-owndata}. The fine-tuning result itself, and the conformal-prediction-based correction to its reported false-positive rate, remain genuine, fully reported findings; only their relative narrative weight in this dissertation has changed, for the reasons given above.
+A second, narrower personalisation-related regime, referred to as C2, adapts the C1 model to each of a canonical set of four personalisation-eligible patients 
+(chb10, chb13, chb15, chb16) individually via a \textbf{three-phase gradual unfreeze}, not a single-shot freeze-trunk-train-head procedure 
+(bolded to not misstate which layers are actually trainable at each stage). Phase 1 trains only the dense head and the batch normalisation layers 
+(every convolutional layer frozen), for 20 epochs at a learning rate of $1\times10^{-4}$. Phase 2 additionally unfreezes the third convolutional block, for a further 20 epochs 
+at $5\times10^{-5}$. Phase 3 additionally unfreezes the second convolutional block, for 30 epochs at $1\times10^{-5}$. The first convolutional block -- the large $(9,7)$ 
+spatio-temporal kernel described above -- remains frozen throughout all three phases, on the reasoning that this layer's broad structural features are expected to transfer across 
+patients even where later, more specific layers do not. Learning rate decreases and epoch budget increases across the three phases by design, reflecting progressively more of the 
+network becoming trainable at each stage. Batch normalisation layers being trainable even in Phase 1, despite every convolutional layer being frozen at that stage, was itself a 
+specific fix applied during this project's development, not the original design.
+
+C2-related results (Section~\ref{sec:results-c2}) primarily support a narrower discussion of pool-size and training-seed effects, rather than serving as the 
+central personalisation evidence, a role held by Section~\ref{sec:results-owndata}. The fine-tuning result itself, and the conformal-prediction-based correction to 
+its reported false-positive rate, remain genuine, fully reported findings.
 
 \section{Evaluation Protocol}
 \label{sec:eval-protocol}
 
 \subsection{Full-Recording LOPO vs. Chronological Test-Slice Evaluation}
 
-Two evaluation regimes are used in this project, and distinguishing them precisely is essential, not a formality: conflating them was the root cause of a real, caught-and-corrected error in this project's own history (below). The first, full-recording leave-one-patient-out (LOPO) evaluation, trains on all patients except the one being evaluated and tests on that patient's \emph{entire} recording, since that patient contributed zero data to training in that fold. This is the only evaluation regime in this dissertation that constitutes a genuine cross-patient generalisation test, and the only regime fairly comparable against \citet{ali2024}'s LOPO figures. The second regime, used elsewhere in the pipeline -- for instance for the C2 personalisation-eligible patients, who \emph{do} contribute training data via their own fine-tuning split -- evaluates only against a smaller, held-out chronological segment of that same patient's own recording, not their entire recording.
+Two evaluation regimes are used in this project, and distinguishing them precisely is essential, not a formality: conflating them was the root cause of a real, 
+caught-and-corrected error in this project's own history (below). The first, full-recording leave-one-patient-out (LOPO) evaluation, trains on all patients except the one being 
+evaluated and tests on that patient's \emph{entire} recording, since that patient contributed zero data to training in that fold. This is the only evaluation regime in this 
+dissertation that constitutes a genuine cross-patient generalisation test, and the only regime fairly comparable against \citet{ali2024}'s LOPO figures. The second regime, used 
+elsewhere in the pipeline, for instance for the C2 patients, who \emph{do} contribute training data via their own fine-tuning split, evaluates only against 
+a smaller, held-out chronological segment of that same patient's own recording, not their entire recording.
 
-These two regimes answer different questions and are not interchangeable. My own LOPO cross-patient sweep was, at one stage, silently re-run using the smaller chronological-slice evaluation set for all fifteen patients rather than each patient's full recording -- an error I caught before any figure derived from that run was finalised, and corrected via an explicit full-recording evaluation flag. I report that correction explicitly, per this dissertation's standing practice of disclosing caught methodological errors as evidence of rigour rather than omitting them.
+These two regimes answer different questions and are not interchangeable. My own LOPO cross-patient sweep was, at one stage, silently re-run using the smaller chronological-slice 
+evaluation set for all fifteen patients rather than each patient's full recording -- an error I caught before any figure derived from that run was finalised, and corrected via an 
+explicit full-recording evaluation flag. I report that correction explicitly, as per my standing practice of disclosing caught errors rather than omitting them.
 
 \subsection{Event-Level vs. Window-Level Metrics}
 
-As introduced in Chapter~\ref{ch:background}, event-level sensitivity and false-positive rate per hour (FP/hr) are treated as this dissertation's primary reporting metrics, on the grounds that a clinician or patient cares about whether a genuine seizure \emph{event} was flagged, not the count of individual, sub-second windows classified correctly within it. Window-level metrics, particularly window specificity, remain in use as a diagnostic tool, described next.
+As introduced in Chapter~\ref{ch:background}, event-level sensitivity and false-positive rate per hour (FP/hr) are treated as this dissertation's primary reporting metrics, on the 
+grounds that a clinician or patient cares about whether a genuine seizure \emph{event} was flagged, not the count of individual, sub-second windows classified correctly within it.
+Window-level metrics, particularly window specificity, remain in use as a diagnostic tool. Stating "event-level" as the primary unit of reporting is not itself 
+sufficient, however, without specifying precisely what constitutes one detected event from a raw sequence of per-window predictions is a choice with many potential alternatives.
+All of which is set out in full below.
+
+\subsubsection{What Constitutes a Detected Event}
+
+Two questions have to be answered before a sequence of window-level positive/negative predictions can be turned into a single event-level sensitivity and FP/hr figure: which nearby 
+positive windows count as the \emph{same} event rather than separate ones, and how much of an event's duration needs to be correctly flagged before that event counts as detected at all.
+
+\textbf{Event grouping.} Positive-predicted windows within 60 seconds of one another are merged into a single event, rather than counted separately. This value was arrived at empirically, not assumed: an earlier, tighter 10-second gap tolerance was tested on chb10 and found to fragment a run of false-positive windows into 636 separate spurious "events" (84.77 FP/hr) -- clearly too aggressive a grouping rule. Widening the tolerance to 60 seconds collapsed this to 68 events (9.06 FP/hr) on the same data, with true event sensitivity completely unaffected by the change. This 60-second value is also independently grounded in clinical practice: the ILAE's convention for seizure clustering treats ictal discharges that fall below threshold and recover within 60 seconds as part of the same seizure cluster, not as separate events, in commercial long-term EEG monitoring \citep{fisher2014}.
+
+\textbf{Detection criterion.} An event counts as detected only if \emph{both} of the following hold: at least 30\% of its windows are predicted positive, and there is a minimum sustained run of 3 consecutive positive-predicted windows (approximately 3 seconds, at the 1-second window step used throughout this project). Neither threshold alone was judged sufficient. The 30\% figure reflects a biological reality rather than an arbitrary convenience: seizures have a recruitment phase at onset (roughly the first 2--5 seconds) during which the EEG signal is often still sub-threshold for a window-level classifier trained predominantly on fully-developed ictal activity, so requiring near-total window coverage across an event would penalise the model for a phase of the seizure it was never realistically going to catch; catching the propagation phase once the seizure is fully underway is treated here as clinically sufficient. The 3-window minimum sustained-run requirement exists to prevent a handful of scattered, isolated positive windows -- which could occur by chance even at a 30\% overall rate -- from counting as a genuine detection. This value was chosen to sit below CHB-MIT's own shortest annotated seizure duration (7 seconds), so that genuinely short seizures remain detectable in principle. Furthermore, it sits comfortably below the conventional 10-second duration threshold widely adopted in clinical electrographic seizure definition and commercial long-term video-EEG monitoring systems \citep{tatum2022}, balancing early event capture against transient artefact rejection.
+
+\realfig{event_formation_criteria.png}{0.9}{Event-formation criteria illustrated: (a) the 60-second gap-tolerance rule merging or separating nearby positive-window clusters into one or two events; (b) and (c) the joint detection criterion (\(\geq\)30\% window coverage \emph{and} \(\geq\)3 consecutive positive windows), showing both a detected event and two ways an event can fail to qualify.}{fig:event-formation}
+
+\textbf{Detection latency}, reported alongside sensitivity and FP/hr throughout Chapter~\ref{ch:results}, is measured directly from this same procedure: the time from an event's true onset to the start of its first sustained qualifying run, not a separately computed figure.
+
 
 \subsection{The Collapse Diagnostic}
 
-A model that fires on almost every window it sees will register a high event sensitivity by simple virtue of never staying silent through a genuine seizure -- an artefact of near-permanent triggering, not genuine discrimination. I built the collapse diagnostic specifically to catch this, and it checks three explicit, numerical conditions; a fold or patient result is only reported as a genuine "pass" if \emph{none} of the following trigger:
+A model that fires on almost every window it sees will register a high event sensitivity by simple virtue of never staying silent through a genuine seizure. This is an artefact of 
+near-permanent triggering, not genuine discrimination. I built the collapse diagnostic specifically to catch this, and it checks three explicit conditions; a fold or patient 
+result is only reported as a genuine "pass" if \emph{none} of the following trigger:
 
 \begin{enumerate}
-    \item \textbf{Window specificity below 0.9.} I set this floor because a model firing on more than 10\% of genuinely non-seizure windows is, in my judgement, already behaving closer to an alarm that is permanently or near-permanently active than to a discriminating detector, regardless of how high its reported sensitivity looks.
+    \item \textbf{Window specificity below 0.9.} I set this floor because a model firing on more than 10\% of genuinely non-seizure windows is, in my judgement, already behaving closer 
+    to an alarm that is near-permanently active than to a discriminating detector, regardless of how high its reported sensitivity looks.
     \item \textbf{A single contiguous predicted block covering more than 90\% of the recording.} This catches the specific over-triggering pattern that motivated this diagnostic in the first place: a model that fires once and simply never stops, which technically overlaps every genuine seizure event (hence a sensitivity of 1.0) without ever having discriminated anything.
-    \item \textbf{Positive-window fraction below 10\% of the true seizure-window rate.} This is the mirror-image failure -- a model that has effectively gone silent, firing so rarely that its few detections are more plausibly noise than genuine discrimination, catching an under-firing collapse that the first two conditions alone would not.
+    \item \textbf{Positive-window fraction below 10\% of the true seizure-window rate.} This is a mirror-image failure where the model that has effectively gone silent, firing so rarely that its few detections are more plausibly noise than genuine discrimination. Here I am simply enforcing an under-firing collapse that the first two conditions alone would not.
 \end{enumerate}
 
 The canonical illustration of why this gate is necessary, referenced repeatedly throughout Chapter~\ref{ch:results}, is chb13 under the C1 frozen-pool model, whose apparently perfect event sensitivity was in fact almost entirely condition (1) and (2) above: a single, near-permanent predicted block covering nearly the whole recording. The three conditions above are implemented directly as follows:
@@ -106,21 +273,32 @@ def collapse_diagnostic(y_pred, window_specificity, y_true=None,
 
 \subsection{Primary Metric: AUPRC over ROC-AUC}
 
-Given the 1--3\% seizure-window class imbalance typical across CHB-MIT patients, I treat the area under the precision-recall curve (AUPRC) as this dissertation's primary window-level discrimination metric, rather than the area under the ROC curve (ROC-AUC), which can present a misleadingly favourable picture on heavily imbalanced data: a classifier that is right about the (rare) positive class only a small fraction of the time can still achieve a deceptively high ROC-AUC, because ROC-AUC's false-positive-rate axis is computed against the (very large) negative class, diluting the effect of missed positives. AUPRC does not have this property, since both its axes are computed with respect to the positive class.
+Given the 1--3\% seizure-window class imbalance typical across CHB-MIT patients, I treat the area under the precision-recall curve (AUPRC) as this dissertation's primary window-level 
+discrimination metric, rather than the area under the ROC curve (ROC-AUC), which can present a misleadingly favourable picture on heavily imbalanced data.
+This is due to a classifier being right 
+about the (rare) positive class only a small fraction of the time can still achieve a deceptively high ROC-AUC, since ROC-AUC's false-positive-rate axis is computed against the 
+(very large) negative class, diluting the effect of missed positives. AUPRC does not have this property as both its axes are computed with respect to the positive class.
 
-ROC-AUC is nonetheless computed and reported alongside AUPRC throughout this dissertation. I include it because it is the convention most widely used across the broader machine-learning and clinical-classification literature, including several of the comparator systems and design-space references discussed in Chapter~\ref{ch:background}, and reporting it allows this dissertation's results to be cross-referenced against that literature directly; it should be read as additive to AUPRC, not a replacement for it as this dissertation's primary metric.
+I include it because it is the convention most widely used across the broader machine-learning 
+and clinical-classification literature, including several of the comparator systems and design-space references discussed in Chapter~\ref{ch:background}, and reporting it allows this 
+dissertation's results to be cross-referenced against that literature directly. As such, it should be read as additive to AUPRC, not a replacement for it as this dissertation's primary metric.
 
-The justification for this ordering is not merely the abstract imbalance argument; it rests on a concrete, numbers-backed correction encountered during this project. A base-rate-relative AUPRC skill ratio -- a patient's raw AUPRC divided by their own seizure-window base rate, correcting for the fact that raw AUPRC is not directly comparable across patients with different prevalence -- revealed that chb15's C1 ratio was 6.0$\times$ base rate (indicating genuinely decent discrimination, with the model's threshold simply misplaced), while chb13's ratio was only 1.3$\times$ (near-chance, indicating genuinely weak discrimination). This is close to the \emph{opposite} of the hypothesis I began this project with, which expected chb15 to be genuinely inert and chb13/chb16 to be cases of misplaced thresholding. Separately, across the full 15-fold LOPO sweep, some patients' ROC-AUC values look superficially reasonable in isolation while the base-rate-corrected AUPRC reveals near-chance discrimination once prevalence is accounted for. Both observations are stated here as the concrete justification for this dissertation's metric choice, rather than relying on the imbalance argument alone.
+The justification for this ordering is not just the abstract imbalance argument; it rests on the back of a correction encountered during this project. A 
+base-rate-relative AUPRC skill ratio -- a patient's raw AUPRC divided by their own seizure-window base rate, correcting for the fact that raw AUPRC is not directly comparable across 
+patients with different prevalence -- revealed that chb15's C1 ratio was 6.0$\times$ base rate (indicating genuinely decent discrimination, with the model's threshold simply misplaced), while chb13's ratio was only 1.3$\times$ (near-chance, indicating genuinely weak discrimination). This is close to the \emph{opposite} of the hypothesis I began this project with, which expected chb15 to be genuinely inert and chb13/chb16 to be cases of misplaced thresholding. 
+Separately, across the full 15-fold LOPO sweep, some patients' ROC-AUC values look superficially reasonable in isolation while the base-rate-corrected AUPRC reveals near-chance discrimination once prevalence is accounted for. Both observations are stated here as justification for this metric choice, rather than relying on the imbalance argument alone.
 
 \subsection{Conformal Prediction for FP/hr Calibration}
 
-A further, statistically grounded correction addresses a specific methodological weakness I identified in my own threshold-selection practice (discussed further in Section~\ref{sec:results-c2}): selecting an operating threshold by sweeping candidate values and reading the resulting false-positive rate off the very data being reported effectively fits that threshold to the test set, producing an optimistic figure. Split-conformal prediction, calibrated on each patient's own chronological validation split -- data already collected and previously used only for early stopping, requiring no new data split or retraining -- gives an exact, distribution-free guarantee under the exchangeability assumption that
+Sweeping operating thresholds over the test set to report false-positive rates ($FP/hr$) introduces subtle data leakage, which can produce overly optimistic performance figures (discussed further in Section~\ref{sec:results-c2}). To eliminate this post-hoc tuning pitfall, I apply \emph{split-conformal prediction} to calibrate operating thresholds. 
+
+Calibration uses each patient's chronological validation split which is data already set aside for early stopping, thus requiring no additional data collection or model retraining. Under the assumption of exchangeability within a single patient's recording, split-conformal prediction yields an exact, distribution-free coverage guarantee:
 
 \begin{equation}
 P(\text{a future non-seizure window triggers the system}) \leq \alpha
 \end{equation}
 
-\noindent where I set $\alpha = 0.01$ throughout this dissertation's conformal-calibrated results (Section~\ref{sec:results-c2}), meaning the calibration is chosen so that no more than 1\% of genuinely non-seizure windows are expected to trigger a false alarm, evaluated on data the model was not calibrated against. This method is applied only within a single patient's own data (C2), where the exchangeability assumption is defensible; it is not extended across patients, where it would not hold.
+Throughout this project's conformal-calibrated evaluations, $\alpha$ is set to $0.01$. This guarantees that no more than 1\% of genuinely non-seizure windows will trigger a false alarm on unseen test data. Crucially, this calibration is applied strictly on a per-patient basis (like for C2) where intra-patient exchangeability holds; it is deliberately not extended cross-patient, where that assumption breaks down.
 
 \section{Hardware Deployment}
 
@@ -128,11 +306,13 @@ Deployment used a Raspberry Pi 5 fitted with a BrainChip AKD1000 v1 M.2 card via
 
 \realfig{hardware_setup_photo.jpeg}{0.85}{The working physical deployment: Raspberry Pi 5, AKD1000 v1 M.2 card and HAT+, and the GPIO-mounted cooling fan, as used for every hardware result reported in this dissertation.}{fig:hw-setup}
 
-A carrier-board substitution (a Pineboards HAT AI Bundle, attempted mid-project for improved physical clearance) failed to enumerate the AKD1000 card at all. I isolated this to a fault in the replacement board or its flexible cable, not the Raspberry Pi itself or the AKD1000 card -- confirmed via \texttt{lspci} showing no device present on the replacement board where the original board correctly enumerated the AKD1000 -- and reverted to the original, confirmed-working M.2 HAT+ for all hardware results reported in this dissertation.
+A carrier-board substitution (a Pineboards HAT AI Bundle, attempted mid-project for improved physical clearance) failed to enumerate the AKD1000 card at all. I isolated this to a fault in the replacement board or its flexible printed circuit cable, not the Raspberry Pi itself or the AKD1000 card -- confirmed via \texttt{lspci} showing no device present on the replacement board where the original board correctly enumerated the AKD1000 -- and reverted to the original, confirmed-working M.2 HAT+ for all hardware results reported in this dissertation.
 
 \subsection{Power Measurement Methodology}
 
-Two genuinely different power figures are reported in this dissertation, and neither is presented as validating or superseding the other. The first is a chip-isolated estimate (approximately 1mW active power), derived from BrainChip's own datasheet figures for the AKD1000's isolated neuromorphic compute, and used in this dissertation's energy-per-inference calculations (Section~\ref{sec:results-hw}).
+Two genuinely different power figures are reported in this dissertation, and neither is presented as validating or superseding the other. The first is a chip-isolated estimate 
+(approximately ~1mW active power), derived from BrainChip's own datasheet figures for the AKD1000's isolated neuromorphic compute, and used in this dissertation's energy-per-inference 
+calculations (Section~\ref{sec:results-hw}).
 
 The second is a system-level bench measurement, taken directly on the physical deployment described above.
 
@@ -140,4 +320,4 @@ The second is a system-level bench measurement, taken directly on the physical d
 
 An RS PRO RS-3005P bench DC power supply was operated in constant-voltage mode (5.00V, 5A current limit), connected directly to the Raspberry Pi 5's USB-C power input, with current read at an idle state (the trained model mapped to the device but no inference running) and an active state (a sustained inference loop running continuously for 30 seconds). This was repeated across three trials, full results for which are given alongside the corresponding measurement in Section~\ref{sec:results-hw}.
 
-This measurement is unavoidably a system-level figure, not a chip-isolated one, and I state why explicitly rather than leaving it for a reader to infer: the AKD1000 M.2 card's own 3.3V supply is derived internally from the Raspberry Pi's single 5V input rail, and no separately-metered power path to the card exists on a standard M.2 HAT+. The bench supply therefore necessarily measures the combined draw of the Raspberry Pi 5's own system-on-chip, its RAM, the HAT+, the AKD1000 card, and the continuously-running GPIO-mounted cooling fan shown in Figure~\ref{fig:hw-setup}, all together, at the single point where power enters the whole system. A genuinely chip-isolated measurement would require a shunt resistor inserted directly into the PCB trace feeding the M.2 connector, read with a precision instrument; I assessed this and deliberately did not attempt it, given the risk of physical damage to the hardware this close to the project's submission deadline, and given that the AKD1000 SDK exposes no runtime power telemetry on this hardware revision (\texttt{device.statistics} returns empty) that might have offered a software-side alternative. I state this as a considered methodological decision I made, not an unexamined limitation.
+This measurement is unavoidably a system-level figure, not a chip-isolated one. This is because the AKD1000 M.2 card's own 3.3V supply is derived internally from the Raspberry Pi's single 5V input rail, and no separately-metered power path to the card exists on a standard M.2 HAT+. The bench supply therefore necessarily measures the combined draw of the Raspberry Pi 5's own system-on-chip, its RAM, the HAT+, the AKD1000 card, and the continuously-running GPIO-mounted cooling fan shown in Figure~\ref{fig:hw-setup}, all together, at the single point where power enters the whole system. A genuinely chip-isolated measurement would require a shunt resistor inserted directly into the PCB trace feeding the M.2 connector, read with a precision instrument; I assessed this and deliberately did not attempt it, given the risk of physical damage to the hardware this close to the project's submission deadline, and given that the AKD1000 SDK exposes no runtime power telemetry on this hardware revision (\texttt{device.statistics} returns empty) that might have offered a software-side alternative. 

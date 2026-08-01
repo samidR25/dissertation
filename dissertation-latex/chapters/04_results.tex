@@ -1,7 +1,13 @@
 \chapter{Results}
 \label{ch:results}
 
-This chapter is ordered deliberately. The cross-patient generalisation result (Section~\ref{sec:results-lopo}) comes first, since it establishes the scale of the problem a shared representation faces. Section~\ref{sec:results-owndata} then presents this dissertation's primary personalisation evidence: an isolated comparison showing that including a patient's own data in an otherwise near-constant-sized training pool measurably improves that patient's own detection outcome, across seven patients. Section~\ref{sec:results-c2} presents a smaller, secondary treatment of a related but mechanistically distinct regime -- per-patient fine-tuning -- reframed around pool-size and training-seed effects rather than as this dissertation's central personalisation claim, together with a conformal-prediction-based correction to an earlier optimistic figure. Sections~\ref{sec:results-convergence} and~\ref{sec:results-hw} report the cross-candidate domain-adaptation convergence finding and the hardware deployment results respectively. Throughout, any raw or optimistic figure is stated in full before the corrected figure that supersedes it, per this dissertation's standing methodological-honesty principle.
+This chapter is ordered as follows: The cross-patient generalisation result (Section~\ref{sec:results-lopo}) comes first, since it establishes the scale of the problem a shared 
+representation faces. Section~\ref{sec:results-owndata} then presents this dissertation's primary personalisation evidence: an isolated comparison showing that including a patient's 
+own data in an otherwise near-constant-sized training pool measurably improves that patient's own detection outcome, across seven patients. Section~\ref{sec:results-c2} presents a 
+smaller, secondary treatment of a related but mechanistically distinct regime -- per-patient personalisation -- framed around pool-size and training-seed effects rather than as this 
+the central personalisation claim, together with a conformal-prediction-based correction to an earlier optimistic figure. Sections~\ref{sec:results-convergence} 
+and~\ref{sec:results-hw} report the cross-candidate domain-adaptation convergence finding and the hardware deployment results respectively. Throughout, any raw or optimistic figure is 
+stated in full before the calibrated, corrected figure that supersedes it.
 
 \section{Cross-Patient Generalisation: LOPO}
 \label{sec:results-lopo}
@@ -37,9 +43,14 @@ chb20 & 0.125 & 4.96 & 0.891 & 1/8   & \textbf{FAIL} \\
 
 \subsection{Headline Figures, Reported in Full}
 
-The all-folds mean event sensitivity, across all fifteen patients unfiltered, is \textbf{0.586 ($\pm$0.445)}, with a mean FP/hr of 4.00. This figure is stated first, in full, and must never be quoted alone: it is inflated by collapse artefacts. The collapse diagnostic reveals a \textbf{47\% collapse-failure rate} (7 of 15 folds), and five of those seven failing folds show sensitivity at or near 1.0 -- meaning most of the "perfect" scores visible in Table~\ref{tab:lopo-full} are the over-triggering artefact the collapse gate exists to catch, not genuine detection.
+The all-folds mean event sensitivity, across all fifteen patients unfiltered, is \textbf{0.586 ($\pm$0.445)}, with a mean FP/hr of 4.00. This figure is stated first, in full, and must 
+\emph{not} be quoted alone as the collapse diagnostic reveals a \textbf{47\% collapse-failure rate} (7 of 15 folds), and five of those seven failing folds 
+show sensitivity at or near 1.0 -- meaning most of the "perfect" scores visible in Table~\ref{tab:lopo-full} are the over-triggering artefact the collapse gate exists to catch, not 
+genuine detection discrimination.
 
-Only once this is established is it appropriate to introduce the corrected figure. Restricting to the eight collapse-passing folds (chb01, chb02, chb03, chb06, chb07, chb09, chb10, chb16), the honest headline event sensitivity is \textbf{0.470 ($\pm$0.437)}, with a mean FP/hr of 4.42. This is the figure that should be compared against \citet{ali2024}'s reported 72--75\% under a genuine LOPO protocol -- a gap of approximately 0.265 below their midpoint (73.5\%) -- with the comparability caveat given in Chapter~\ref{ch:background} stated alongside it, not omitted.
+Only once this is established is it appropriate to introduce the corrected figure. Restricting to the eight collapse-passing folds (chb01, chb02, chb03, chb06, chb07, chb09, chb10, 
+chb16), the headline event sensitivity is \textbf{0.470 ($\pm$0.437)}, with a mean FP/hr of 4.42.
+This diagnostic-passing figure ($0.470$) serves as the primary point of comparison against \citet{ali2024}'s reported 72--75\% sensitivity under a genuine LOPO protocol. Representing a gap of approximately 0.265 below their midpoint (73.5\%). However, this comparison requires an explicit caveat regarding comparability. The 0.470 figure reported here has been rigorously filtered through the collapse diagnostic to eliminate over-triggering artefacts. In contrast, Ali et al. do not report an equivalent filtering step or explicit window-specificity floor. If their published 72--75\% sensitivity represents an unfiltered raw metric, it is more appropriately compared against this project's unfiltered LOPO mean of 0.586 ($\pm$0.445), narrowing the operational performance gap considerably. Both baseline and collapse-corrected figures are reported side by side to ensure complete evaluative transparency.
 
 \subsection{Bimodality: The Shape of the Result}
 
@@ -47,7 +58,7 @@ The mean alone understates the most informative feature of this result: its shap
 
 \realfig{lopo_sensitivity_bimodal_hist.png}{0.7}{Histogram of LOPO collapse-passing fold event sensitivities, showing bimodal clustering near 0.0 and 1.0 rather than a smooth unimodal spread around the mean.}{fig:lopo-bimodal}
 
-This bimodality is the strongest single piece of evidence this dissertation offers for the physiological-heterogeneity argument developed in Chapter~\ref{ch:discussion}: it suggests the shared representation either does or does not contain something close enough to a given patient's own ictal morphology, rather than generalisation degrading smoothly as some notion of "distance" from the training pool increases.
+This bimodality is the strongest single piece of evidence this dissertation offers for the physiological-heterogeneity argument developed in Chapter~\ref{ch:discussion}. As it suggests the shared representation either does or does not contain something close enough to a given patient's own ictal morphology, rather than generalisation degrading smoothly as some notion of "distance" from the training pool increases.
 
 \subsection{Per-Patient Breakdown}
 
@@ -55,12 +66,18 @@ This bimodality is the strongest single piece of evidence this dissertation offe
 
 \realfig{lopo_sensitivity_vs_fphr_scatter.png}{0.75}{Scatter of event sensitivity against FP/hr across all fifteen LOPO folds, coloured by collapse status.}{fig:lopo-scatter}
 
-chb13 is worth discussing individually. Under domain-adaptation methods (Section~\ref{sec:results-convergence}) it is the single hardest patient in the project, failing consistently. Under LOPO, it fails again -- but via the \emph{opposite} mechanism: over-triggering (collapse-FAIL, window specificity 0.695) rather than under-detection. The same patient is difficult under every method tried in this project, but the specific way it fails depends on which method is applied -- a distinction worth stating explicitly rather than treating "chb13 fails" as a single, undifferentiated fact.
+chb13 is worth discussing individually. Under domain-adaptation methods (Section~\ref{sec:results-convergence}) it is the single hardest patient in the project, failing consistently. Under LOPO, it fails again -- but via the \emph{opposite} mechanism: over-triggering (collapse-FAIL, window specificity 0.695) rather than under-detection. The same patient is difficult under every method tried in this project, but the specific way it fails depends on which method is applied -- 
+a distinction stated explicitly rather than treating "chb13 fails" as a single, undifferentiated fact. 
+Moreover, it is natural to ask whether a biological explanation is available for these difficulties. CHB-MIT's public subject metadata \citep{chbmit_subject_info} records chb13 as female, age 3 -- among the youngest patients in the cohort (the dataset spans ages 1.5 to 22). Beyond age and gender, however, CHB-MIT's public release does not include per-patient seizure type or focus localisation. I state the verified demographic fact here, but I have deliberately not constructed a causal biological explanation from it as age alone is not sufficient evidence for why this particular patient is hard across every method tried, and doing so would be speculation presented as a finding.
 
 \section{Personalisation via Own-Data Inclusion: pool6-minus-X vs. Pool7}
 \label{sec:results-owndata}
 
-This section presents this dissertation's primary evidence and justification for personalisation as a design principle. It is important to state its relationship to the smaller, secondary section that follows (Section~\ref{sec:results-c2}) precisely: both sections speak to a related claim -- that a patient's own data improves their own detection outcome -- but via different mechanisms. This section demonstrates the effect via \emph{pool composition} on a model that remains otherwise frozen and shared; Section~\ref{sec:results-c2} demonstrates a related effect via explicit \emph{per-patient fine-tuning}. The two are not the same experiment conducted at different scales, and this section's larger, more tightly controlled evidence is why it is presented first.
+This section presents this dissertation's primary evidence and justification for personalisation as a design principle. It is important to state its relationship to the smaller, 
+secondary section that follows (Section~\ref{sec:results-c2}) precisely: both sections speak to a related claim -- that a patient's own data improves their own detection outcome 
+but through different mechanisms. This section demonstrates the effect via \emph{pool composition} on a model that remains otherwise frozen and shared; Section~\ref{sec:results-c2} 
+demonstrates a related effect via explicit \emph{per-patient fine-tuning}. The two are not the same experiment conducted at different scales, and this section's larger, more tightly 
+controlled evidence is why it is presented first.
 
 \subsection{Does It Learn? All 7 Pool Patients on Their Own Data}
 
@@ -113,7 +130,8 @@ chb20 & 0.125 & PASS & 1.000 & PASS & \textbf{+0.875} \\
 
 chb05 warrants its own discussion rather than a single table cell. Its raw sensitivity is identical (1.000) whether its own data is present or absent -- read carelessly, this would suggest no effect at all. The collapse diagnostic reveals the opposite: the zero-shot (excluded) result is a collapse-FAIL over-triggering artefact (window specificity 0.527, approximately 850 FP/hr -- essentially flagging everything), while the in-pool (included) result is a genuine detection. Including chb05's own data did not merely fail to move its headline sensitivity number; it converted a fake "perfect" result into a real one. This is the same collapse-diagnostic-reveals-an-artefact pattern already demonstrated for chb13 under C1 (Section~\ref{sec:results-convergence}) and for several LOPO collapse-failing folds (Section~\ref{sec:results-lopo}), observed here for a third time, in a new context.
 
-\textbf{Headline finding: five of seven patients show a real or artefact-clarifying benefit from their own data being present} -- chb01, chb02, and chb20 as clean sensitivity gains (+0.714, +0.333, +0.875 respectively), chb05 via the collapse-gate correction above. \textbf{Two of seven (chb06, chb07, chb09) show no measurable difference either way} -- chb06 fails regardless of context, consistent with it being a genuine outlier rather than a pool-composition effect; chb07 and chb09 succeed regardless, suggesting these two patients were already reasonably well represented by the surrounding pool's diversity even without their own data present. This is now this dissertation's central claim and justification for personalisation as a design principle.
+\textbf{Thus the Headline finding: five of seven patients show a real or artefact-clarifying benefit from their own data being present} -- chb01, chb02, and chb20 as clean sensitivity gains (+0.714, +0.333, +0.875 respectively), chb05 via the collapse-gate correction above. \textbf{Two of seven (chb06, chb07, chb09) show no measurable difference either way} -- chb06 fails regardless of context, consistent with it being a genuine outlier rather than a pool-composition effect; chb07 and chb09 succeed regardless, 
+suggesting these two patients were already reasonably well represented by the surrounding pool's diversity even without their own data present. As a result, this is now this report's central claim and justification for personalisation as a design principle.
 
 \section{C1 vs. C2: Pool-Size and Seed Effects}
 \label{sec:results-c2}
@@ -148,7 +166,7 @@ chb19 & 1.000 & FAIL (over-fire) & 0.333 & \textbf{PASS} \\
 \end{tabular}
 \end{table}
 
-The collapse-pass rate improves from C1's 3/8 (37.5\%) to pool7's 7/8 (87.5\%), while PASS-only mean sensitivity is nearly identical either way (C1: 0.190; pool7: 0.202). A larger pool did not meaningfully improve raw detection ability so much as it sharply reduced the collapse-artefact failure rate -- a real, but distinct, mechanism from the own-data effect demonstrated in Section~\ref{sec:pool6-minus-x}. This is not a free improvement: pool7's PASS-only mean FP/hr (approximately 3.69) is roughly four times C1's (approximately 0.855), a trade-off stated here plainly rather than left out of the headline.
+The collapse-pass rate improves from C1's 3/8 (37.5\%) to pool7's 7/8 (87.5\%), while PASS-only mean sensitivity is nearly identical either way (C1: 0.190; pool7: 0.202). A larger pool did not meaningfully improve raw detection ability so much as it sharply reduced the collapse-artefact failure rate -- a real, but distinct, mechanism from the own-data effect demonstrated in Section~\ref{sec:pool6-minus-x}. This is not a free improvement: pool7's PASS-only mean FP/hr (approximately 3.69) is roughly four times C1's (approximately 0.855), a trade-off stated here plainly.
 
 \subsection{Seed Sensitivity}
 
@@ -160,11 +178,12 @@ An initial threshold-sweep calibration reported, as originally obtained, FP/hr f
 
 The corrected figures, from split-conformal prediction at $\alpha=0.01$ (Section~\ref{sec:eval-protocol}), are chb10ft 6.00/hr, chb13ft 2.42/hr, chb15ft 1.33/hr, and chb16ft 9.83/hr. All four move in the same direction relative to the sweep-selected figures -- a four-for-four consistency treated here as a meaningful signal, not noise.
 
-The chb10 case includes a worked reproducibility finding, reported here as an example of this project's honesty discipline rather than omitted. An earlier session reported chb10's conformal FP/hr as 5.46; on reproducing this figure against the project's final evaluation pipeline, the same checkpoint yields 6.00 (sensitivity unaffected -- 1.000, 4/4 events, in both cases). Investigation ruled out checkpoint identity, inference batching, the scoring formula, and calibration data as causes; the discrepancy is attributed to an earlier, uncommitted version of the evaluation script that predates a later code migration and was not separately preserved. 6.00 is reported here as the canonical, currently reproducible figure; 5.46 is stated as the earlier, now-irreproducible figure -- not silently dropped.
-
 \subsection{chb16: An Honest Limitation, Not Omitted}
 
 chb16 fails this project's own false-positive-rate target at every threshold tested, under every calibration method applied. Its window-level AUPRC (0.0235, near-chance) indicates the root cause is genuinely weak discrimination, not merely a misplaced threshold. This dissertation reports chb16 as an honest limitation of the current pipeline for this specific patient, rather than omitting it or selectively reporting only patients for which calibration succeeded.
+As with chb13 above, CHB-MIT's public subject metadata \citep{chbmit_subject_info} records chb16 as female, age 7 -- also among the younger patients in the cohort. 
+The same limitation applies here: no per-patient seizure type or focus localisation is available for chb16 in the public dataset, so this age fact is reported again, 
+but is not as a means of offering an explanation for the near-chance discrimination reported above.
 
 \textbf{Recommended operating threshold for chb16 (reconciling three prior candidates):} across earlier stages of this project, three different threshold-selection exercises were run for chb16, each optimising a different explicit criterion, and each giving a different answer: the collapse-diagnostic-passing threshold ($T^{*}=0.45$, the first value that clears the collapse gate at all); a threshold chosen as the best available compromise against the project's FPR target (0.70, window sensitivity 0.3810, still short of the target at every threshold tried); and the conformal-calibrated threshold used everywhere else in this section ($\alpha=0.01$, threshold $\approx 0.9738$, event sensitivity 0.200, FP/hr 9.83).
 
@@ -177,14 +196,21 @@ Four independent domain-adaptation and representation-learning candidates were e
 
 \realfig{chb13_convergence.png}{0.8}{Cross-candidate convergence: chb13's performance under DANN, CORAL, self-supervised pretraining, and Candidate G, illustrating the shared failure across independent mechanisms.}{fig:chb13-convergence}
 
-DANN's result is worth detailing as it was mechanism-verified rather than merely observed: a $\lambda=0$ control condition confirmed the adversarial domain-classification mechanism genuinely functions (domain-classifier accuracy collapsed from 1.00 to 0.47, near chance for a three-class problem, once the adversarial term was active), yet chb13 got measurably \emph{worse}, not better, at every non-zero $\lambda$ tested. CORAL and self-supervised pretraining were both confirmed negative on the same six-patient evaluation set, failing in the same direction. Candidate G, using physiologically-normalised input features, was likewise confirmed negative, via a distinguishable bimodal failure pattern rather than the same mechanism as the other three. This four-way convergence on a single patient, via multiple independent mechanisms, is treated in this dissertation as stronger evidence than any single negative result in isolation would have been, and is developed further in Chapter~\ref{ch:discussion}.
+The DANN outcome warrants detailed examination because it was mechanism-verified rather than merely observed: a control condition ($\lambda=0$) confirmed that the adversarial domain-classification mechanism functioned as intended---domain-classifier accuracy dropped from 1.00 to 0.47 (near-chance for a three-class problem) once the adversarial gradient reversal was active. Despite this successful feature alignment, performance on \texttt{chb13} degraded across every non-zero $\lambda$ evaluated. 
+
+Both CORAL and self-supervised pretraining similarly produced verified negative results on the same six-patient evaluation suite, failing in the identical direction. Candidate G, which incorporated physiologically-normalised input features, likewise failed, exhibiting a distinct bimodal failure pattern. This four-way convergence on a single target patient across fundamentally distinct mechanisms provides far stronger evidence of intrinsic structural difficulty than any isolated negative result could convey, a finding explored further in Chapter~\ref{ch:discussion}.
 
 \section{Hardware Deployment}
 \label{sec:results-hw}
 
-Deployment on real BrainChip AKD1000 v1 silicon (Chapter~\ref{ch:methodology}, Figure~\ref{fig:hw-setup}) achieved a measured inference latency of approximately 0.91ms per inference and an energy cost of approximately 0.906\textmu J per inference, based on a chip-isolated, datasheet-derived power estimate of approximately 1mW active power.
+Deployment on real BrainChip AKD1000 v1 silicon (Chapter~\ref{ch:methodology}, Figure~\ref{fig:hw-setup}) achieved a measured inference latency of approximately 0.91ms per inference and 
+an energy cost of approximately 0.906\textmu J per inference, based on a chip-isolated, datasheet-derived power estimate of approximately 1mW active power.
 
-A sign-flip bug was identified and corrected in the hardware inference script (\texttt{run\_on\_akida.py}) during this project: the deployed decision rule computed a ratio of spike counts that silently inverted whenever the underlying signed potential total fell below zero, an artefact of the unconstrained final dense layer's output. Prior to the fix, this produced a measured chb10 hardware sensitivity of 0.3132 against a simulator-predicted 0.3950 -- a discrepancy affecting 23 of 281 evaluated windows. Following the fix (replacing the ratio computation with a sign-safe sigmoid-of-margin formula, already in use elsewhere in the codebase), hardware results match the simulator exactly across all re-verified patients. This bug and its correction are reported here explicitly, consistent with this project's standing practice of disclosing caught methodological errors rather than presenting only a final, error-free-looking pipeline.
+A sign-flip bug was identified and corrected in the hardware inference script (\texttt{run\_on\_akida.py}) during this project: the deployed decision rule computed a ratio of spike 
+counts that silently inverted whenever the underlying signed potential total fell below zero, an artefact of the unconstrained final dense layer's output. Prior to the fix, this 
+produced a measured chb10 hardware sensitivity of 0.3132 against a simulator-predicted 0.3950 -- a discrepancy affecting 23 of 281 evaluated windows. Following the fix (replacing the 
+ratio computation with a sign-safe sigmoid-of-margin formula, already in use elsewhere in the codebase), hardware results match the simulator exactly across all re-verified patients. 
+This bug and its correction are reported here explicitly to disclose caught methodological errors rather than presenting only a final, error-free-looking pipeline.
 
 \subsection{System-Level Power Measurement}
 
@@ -210,4 +236,9 @@ Trial & $I_{\text{idle}}$ (A) & $I_{\text{active}}$ (A) & $\Delta I$ (A) & $\Del
 The mean delta of 1.125A at 5.00V gives \textbf{5.63W}, the figure reported as this dissertation's system-level power result throughout.
 
 
-This figure and the approximately 1mW chip-level estimate above are not comparable, and neither confirms nor refutes the other; this is stated explicitly rather than left for a reader to reconcile unassisted. The approximately 1mW figure is a datasheet-derived estimate of the AKD1000 chip's own isolated neuromorphic compute, used in this dissertation's energy-per-inference calculations. The 5.63W figure is the measured incremental cost to the \emph{entire host system} of a sustained inference workload -- necessarily including the Raspberry Pi 5's own ARM CPU cycles spent in the Python/SDK driver stack orchestrating each inference call, not the chip's consumption alone, since the AKD1000's power supply is derived internally from the Pi's single 5V rail with no separately metered path to the card (Chapter~\ref{ch:methodology}). The approximately three-orders-of-magnitude gap between the two figures reflects host-CPU orchestration overhead dominating the chip's own genuinely small draw, not an error in either measurement.
+This figure and the ~1mW chip-level estimate above are not comparable, and neither confirms nor refutes the other. The ~1mW figure is a datasheet-derived estimate of the AKD1000 
+chip's own isolated neuromorphic compute, used in this dissertation's 
+energy-per-inference calculations. The 5.63W figure is the measured incremental cost to the \emph{entire host system} of a sustained inference workload -- necessarily including the 
+Raspberry Pi 5's own ARM CPU cycles spent in the Python/SDK driver stack orchestrating each inference call, not the chip's consumption alone, since the AKD1000's power supply is derived
+internally from the Pi's single 5V rail with no separately metered path to the card (Chapter~\ref{ch:methodology}). The approximately three-orders-of-magnitude gap between the two 
+figures reflects host-CPU orchestration overhead dominating the chip's own genuinely small draw, not a possible issue that happened in either measurement.

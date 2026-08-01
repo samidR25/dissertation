@@ -30,7 +30,7 @@
 \usepackage{cleveref}
 \usepackage{setspace}
 \usepackage{float}
-\usepackage{rotating}
+\usepackage{pdflscape}
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setdefaultlanguage{english}
@@ -88,17 +88,26 @@
     \end{figure}%
 }
 
-% Same as \realfig, but rotated onto its own landscape page -- use for
-% wide horizontal pipeline/block diagrams where portrait width squeezes
-% the text illegibly small even at width=1.0\textwidth. Width fraction
-% here is relative to \textheight (the rotated page's usable "width").
+% Same as \realfig, but placed on a full landscape-oriented PAGE (via
+% pdflscape) rather than the figure being rotated on a portrait page.
+% This is the important distinction: pdflscape rotates the PDF page
+% itself, so PDF viewers display it the right way up automatically when
+% the reader reaches it -- no head-turning or device-rotating needed,
+% unlike the `rotating` package's \sidewaysfigure, which only rotates the
+% figure content within an unrotated portrait page. Use for wide
+% horizontal pipeline/block diagrams where portrait width squeezes the
+% text illegibly small even at width=1.0\textwidth. Width fraction here
+% is relative to \linewidth AFTER rotation (i.e. effectively the original
+% page's height, which becomes the usable width on the landscape page).
 \newcommand{\realfigwide}[4]{%
-    \begin{sidewaysfigure}
-        \centering
-        \includegraphics[width=#2\textheight]{#1}
-        \caption{#3}
-        \label{#4}
-    \end{sidewaysfigure}%
+    \begin{landscape}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=#2\linewidth]{#1}
+            \caption{#3}
+            \label{#4}
+        \end{figure}
+    \end{landscape}%
 }
 
 \onehalfspacing
