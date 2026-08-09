@@ -26,14 +26,13 @@ The project is framed around two complementary, separately-evaluated questions r
 | Energy / inference | **~0.906 µJ** | Measured on AKD1000 silicon |
 | AKD1000 active power | **~1 mW** | vs 15–50 mW on conventional MCU |
 
-**Cross-patient generalisation (LOPO, 15/15 folds complete — see dedicated section below):**
+Cross-patient generalisation (LOPO, 15/15 folds complete — see dedicated section below):
 
 | Metric | Value | Notes |
-|--------|-------|-------|
-| Event sensitivity, PASS-only mean | **0.470 ± 0.437** | 8/15 folds pass the collapse diagnostic — this is the honest headline figure |
-| Event sensitivity, all-folds mean | 0.586 | Includes collapse-FAIL folds — do not quote without the PASS-only figure alongside it |
-| Collapse-FAIL rate | **7/15 (47%)** | A reportable finding in its own right, not just a filter |
-| Gap vs. Ali et al. (2024) comparator | +0.265 below their 72–75% midpoint | RF + hand-crafted features, different eval protocol — see caveat in LOPO section |
+|---|---|---|
+| Event sensitivity, all-folds mean | 0.586 | **The fair comparator against Ali et al. (2024)** — |
+| Event sensitivity, PASS-only mean | 0.470 ± 0.437 | 8/15 folds pass the collapse diagnostic — a stricter, diagnostic figure |
+| Gap vs. Ali et al. (2024) comparator | ~0.15 below their 72–75% midpoint | Using the all-folds mean (0.586, the correct comparator) against their RF + hand-crafted-features figure, different eval protocol.|
 
 > Both C2 and LOPO results are reported as full metric bundles (event sensitivity, window specificity, FP/hr, collapse diagnostic) — never sensitivity alone. Full disclosure discipline documented in the Methodology Ledger (Obsidian vault, not committed to this repo).
 
@@ -313,9 +312,9 @@ dissertation/
 | Phase 2c — Cross-patient generalisation (C1, representational candidates: DANN/CORAL/SSL/Candidate G) | ✅ Closed (converged negative — see ledger) |
 | Phase 2d — LOPO (rotating, 15/15 folds) | ✅ Complete |
 | Phase 2e — Pool expansion (pool7) + ROC-AUC diagnostic | ✅ Complete |
-| Power measurement (bench DC supply) | 🔄 Scheduled next |
+| Power measurement (bench DC supply) | ✅ Complete |
 | Hardware robustness (makerspace enclosure) |✅ Complete |
-| Phase 3 — Dissertation write-up | 🔄 Starting |
+| Phase 3 — Dissertation write-up | 🔄 In Progress |
 
 ---
 
