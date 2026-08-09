@@ -180,7 +180,7 @@ During development, **23 previously undocumented AKD1000 v1 hardware constraints
 - `per_tensor_activations=True` mandatory in QuantizationParams
 - `numpy >= 2.0` required (not `< 2.0` as stated in some older docs)
 
-See [`Akd1000_v1_architecture_constraints.md`](Akd1000_v1_architecture_constraints.md) for the full list. (Note: that document's own recorded param count, 137,314, predates this session's confirmed 137,826 — worth reconciling before citing either number in the dissertation.)
+See [`Akd1000_v1_architecture_constraints.md`](Akd1000_v1_architecture_constraints.md) for the full list.
 
 ---
 
