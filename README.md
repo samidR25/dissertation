@@ -314,7 +314,7 @@ dissertation/
 | Phase 2e — Pool expansion (pool7) + ROC-AUC diagnostic | ✅ Complete |
 | Power measurement (bench DC supply) | ✅ Complete |
 | Hardware robustness (makerspace enclosure) |✅ Complete |
-| Phase 3 — Dissertation write-up |✅In Progress |
+| Phase 3 — Dissertation write-up |✅ Complete|
 
 ---
 
