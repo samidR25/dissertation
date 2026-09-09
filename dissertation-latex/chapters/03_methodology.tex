@@ -13,10 +13,10 @@ split_ratios: tuple = (0.70, 0.15, 0.15)   # chronological train/val/test
 
 Every result reported in Chapter~\ref{ch:results} is evaluated against this split's reserved, final 15\% -- saved and loaded throughout this project's codebase as \texttt{X\_test}/\texttt{y\_test} -- confirmed directly in \texttt{eval\_event\_level.py}, which refuses to run without an \texttt{X\_test} array present in the dataset file it is pointed at.
 
-This choice was deliberate and made because consider what a stratified (randomly shuffled) split would permit: a five-second 
+This choice was made because consider what a stratified (randomly shuffled) split would permit: a five-second 
 window drawn from the middle of a given seizure event could land in the training set, while a temporally adjacent window from that same seizure event -- sharing near-identical 
 waveform morphology, since seizure activity smoothly builds up and is not disjointed in nature -- could land in the test set purely by chance. A model evaluated 
-this way could score well by effectively recognising a near-duplicate of something it had already seen, rather than by genuinely generalising to unseen seizure activity, and no real 
+this way could score well by effectively recognising a near-duplicate of something it had already seen, rather than by actually generalising to unseen seizure activity, and no real 
 deployed device could ever benefit from this, since a device monitoring a patient in real time only ever has access to that patient's past, never their future. 
 Chronological splitting removes this possibility structurally: nothing in the test set can be a near-neighbour of anything in training, because everything in training necessarily 
 precedes everything in test in time. I rejected stratified splitting for this reason, and I consider chronological splitting a required baseline for methodological honesty in this 
@@ -37,7 +37,7 @@ Two further implementation details are worth stating explicitly, since both refl
 
 Each recording is then divided into fixed 2-second windows with a 1-second stride (50\% overlap) to maximise training density. To ensure label integrity, windows are designated positive only when $\ge 50\%$ of their duration overlaps an annotated seizure. This criterion removes transitional onset/offset windows with ambiguous ground truth, to establish a clean, unambiguous decision boundary.
 
-\realfig{eeg_electrode_montage.png}{0.85}{Standard EEG electrode placement (10-20 system) for the 18-channel montage used in this project. Verified against a real channel dump from \texttt{chb01\_01.edf}: only FT9 and FT10 are genuinely extra electrodes outside the 18-channel set; the remaining three nominally "excluded" channel labels (P7-T7, FT10-T8, and a duplicate T8-P8) are re-pairings of electrodes already present in the montage, not additional physical electrode sites.}{fig:eeg-montage}
+\realfig{eeg_electrode_montage.png}{0.85}{Standard EEG electrode placement (10-20 system) for the 18-channel montage used in this project. Verified against a real channel dump from \texttt{chb01\_01.edf}: only FT9 and FT10 are extra electrodes outside the 18-channel set; the remaining three nominally "excluded" channel labels (P7-T7, FT10-T8, and a duplicate T8-P8) are re-pairings of electrodes already present in the montage, not additional physical electrode sites.}{fig:eeg-montage}
 
 \subsection{Chronological Splitting and SMOTE Ordering}
 
@@ -48,7 +48,7 @@ the whole recording, then splitting the resulting, already-augmented dataset int
 It was only once I 
 was auditing intermediate outputs for an unrelated check that I noticed synthetic samples generated from what should have been strictly training-only data were structurally capable of 
 having near-identical neighbours land across the split boundary in validation -- meaning a portion of what I was calling "unseen validation performance" could, in principle, reflect 
-the model recognising a synthetic near-duplicate of something it had implicitly been shown, rather than genuine generalisation. I corrected this project-wide once 
+the model recognising a synthetic near-duplicate of something it had implicitly been shown, rather than true generalisation. I corrected this project-wide once 
 I found it. SMOTE is now applied \emph{only} to the already-separated post-split training portion throughout every result reported in this dissertation, never to validation or test data, and 
 never before the chronological split itself is made.
 
@@ -66,7 +66,7 @@ experimental-scope decisions elsewhere in this chapter -- were made under bindin
 training, and dataset construction for this project ran on a single laptop via WSL2 (Windows Subsystem for Linux), with approximately 11GB of RAM available to the 
 environment and a shared disk budget that had to be actively monitored during larger multi-patient builds.
 
-This constraint shaped concrete decisions documented elsewhere in this dissertation, not just as background colour: the SMOTE undersampling ratios above were tuned specifically to fit within this RAM budget; the pool7/pool6-minus-X experiments (Section~\ref{sec:results-owndata}) were run as a bounded, seven-patient expansion rather than a larger pool, in part because dataset-building time and memory footprint scale with pool size on this hardware; and an out-of-memory bug in the pool-dataset-building script (an unused array construction consuming approximately 6.85GB unnecessarily) reliably crashed builds on this machine before it was identified and fixed, a bug that would very plausibly not have surfaced at all on a machine with a larger RAM budget. Training run duration was also a live constraint on experimental scope: individual LOPO folds and multi-patient pool builds took long enough (multiple hours per full sweep) that iteration speed was a genuine factor in which candidate techniques were screened at a single seed/patient before committing to a fuller multi-seed or multi-patient confirmation run, a screening discipline described further in Section~\ref{sec:results-c2} and Chapter~\ref{ch:discussion}.
+This constraint shaped concrete decisions documented elsewhere in this dissertation, not just as background colour: the SMOTE undersampling ratios above were tuned specifically to fit within this RAM budget; the pool7/pool6-minus-X experiments (Section~\ref{sec:results-owndata}) were run as a bounded, seven-patient expansion rather than a larger pool, in part because dataset-building time and memory footprint scale with pool size on this hardware; and an out-of-memory bug in the pool-dataset-building script (an unused array construction consuming approximately 6.85GB unnecessarily) reliably crashed builds on this machine before it was identified and fixed, a bug that would very plausibly not have surfaced at all on a machine with a larger RAM budget. Training run duration was also a live constraint on experimental scope: individual LOPO folds and multi-patient pool builds took long enough (multiple hours per full sweep) that iteration speed was a factor in which candidate techniques were screened at a single seed/patient before committing to a fuller multi-seed or multi-patient confirmation run, a screening discipline described further in Section~\ref{sec:results-c2} and Chapter~\ref{ch:discussion}.
 
 \section{Model Architecture}
 
@@ -96,14 +96,14 @@ supersede the other.
 
 Reproducibility is handled by explicit, deterministic seeding at the start of every training run (\texttt{random.seed}, \texttt{np.random.seed}, and \texttt{tf.random.set\_seed}, 
 all set from the same value; default 42, though the canonical C2 results reported in Chapter~\ref{ch:results} use seed 256 specifically). The 
-seed-sensitivity discussion in Section~\ref{sec:results-c2} concerns genuine variance in outcome \emph{across} different seed values, not a lack of within-run determinism as each 
+seed-sensitivity discussion in Section~\ref{sec:results-c2} concerns variance in outcome \emph{across} different seed values, not a lack of within-run determinism as each 
 individual run is fully reproducible given its seed.
 
  
 Additionally, the early-stopping validation subset used during training is not simply the chronological validation portion from the 70:15:15 split, because doing so carries an identified risk for 
 at least one patient, addressed proactively rather than only after being observed to go wrong. chb03's chronological validation portion happened to contain zero 
 seizure windows (all three of chb03's annotated seizures fell entirely within the chronological training or test portions), which meant early stopping monitored against that 
-chronological validation split for this patient would have been driven by just noise rather than any genuine seizure-relevant signal, had the naive approach been used.
+chronological validation split for this patient would have been driven by just noise rather than any real seizure-relevant signal, had the naive approach been used.
 In contrast to this chb10, never posed this risk, because its chronological validation portion happened to contain 66 seizure windows. The fix applied throughout this project stratifies a seizure-guaranteed validation subset \emph{from within the 
 already-isolated training portion only}, used exclusively for early-stopping and checkpoint selection during training. 
 
@@ -197,7 +197,7 @@ specific fix applied during this project's development, not the original design.
 
 C2-related results (Section~\ref{sec:results-c2}) primarily support a narrower discussion of pool-size and training-seed effects, rather than serving as the 
 central personalisation evidence, a role held by Section~\ref{sec:results-owndata}. The fine-tuning result itself, and the conformal-prediction-based correction to 
-its reported false-positive rate, remain genuine, fully reported findings.
+its reported false-positive rate remain fully reported findings.
 
 \section{Evaluation Protocol}
 \label{sec:eval-protocol}
@@ -207,7 +207,7 @@ its reported false-positive rate, remain genuine, fully reported findings.
 Two evaluation regimes are used in this project, and distinguishing them precisely is essential, not a formality: conflating them was the root cause of a real, 
 caught-and-corrected error in this project's own history (below). The first, full-recording leave-one-patient-out (LOPO) evaluation, trains on all patients except the one being 
 evaluated and tests on that patient's \emph{entire} recording, since that patient contributed zero data to training in that fold. This is the only evaluation regime in this 
-dissertation that constitutes a genuine cross-patient generalisation test, and the only regime fairly comparable against \citet{ali2024}'s LOPO figures. The second regime, used 
+dissertation that constitutes a cross-patient generalisation test, and the only regime fairly comparable against \citet{ali2024}'s LOPO figures. The second regime, used 
 elsewhere in the pipeline, for instance for the C2 patients, who \emph{do} contribute training data via their own fine-tuning split, evaluates only against 
 a smaller, held-out chronological segment of that same patient's own recording, not their entire recording.
 
@@ -218,8 +218,9 @@ explicit full-recording evaluation flag. I report that correction explicitly, as
 \subsection{Event-Level vs. Window-Level Metrics}
 
 As introduced in Chapter~\ref{ch:background}, event-level sensitivity and false-positive rate per hour (FP/hr) are treated as this dissertation's primary reporting metrics, on the 
-grounds that a clinician or patient cares about whether a genuine seizure \emph{event} was flagged, not the count of individual, sub-second windows classified correctly within it.
-Window-level metrics, particularly window specificity, remain in use as a diagnostic tool. Stating "event-level" as the primary unit of reporting is not itself 
+grounds that a clinician or patient cares about whether a real seizure \emph{event} was flagged, not the count of individual, sub-second windows classified correctly within it.
+Window-level metrics, particularly window specificity, are also reported throughout, and window specificity additionally underpins a supplementary diagnostic described later in this section. 
+Stating "event-level" as the primary unit of reporting is not itself 
 sufficient, however, without specifying precisely what constitutes one detected event from a raw sequence of per-window predictions is a choice with many potential alternatives.
 All of which is set out in full below.
 
@@ -230,46 +231,15 @@ positive windows count as the \emph{same} event rather than separate ones, and h
 
 \textbf{Event grouping.} Positive-predicted windows within 60 seconds of one another are merged into a single event, rather than counted separately. This value was arrived at empirically, not assumed: an earlier, tighter 10-second gap tolerance was tested on chb10 and found to fragment a run of false-positive windows into 636 separate spurious "events" (84.77 FP/hr) -- clearly too aggressive a grouping rule. Widening the tolerance to 60 seconds collapsed this to 68 events (9.06 FP/hr) on the same data, with true event sensitivity completely unaffected by the change. This 60-second value is also independently grounded in clinical practice: the ILAE's convention for seizure clustering treats ictal discharges that fall below threshold and recover within 60 seconds as part of the same seizure cluster, not as separate events, in commercial long-term EEG monitoring \citep{fisher2014}.
 
-\textbf{Detection criterion.} An event counts as detected only if \emph{both} of the following hold: at least 30\% of its windows are predicted positive, and there is a minimum sustained run of 3 consecutive positive-predicted windows (approximately 3 seconds, at the 1-second window step used throughout this project). Neither threshold alone was judged sufficient. The 30\% figure reflects a biological reality rather than an arbitrary convenience: seizures have a recruitment phase at onset (roughly the first 2--5 seconds) during which the EEG signal is often still sub-threshold for a window-level classifier trained predominantly on fully-developed ictal activity, so requiring near-total window coverage across an event would penalise the model for a phase of the seizure it was never realistically going to catch; catching the propagation phase once the seizure is fully underway is treated here as clinically sufficient. The 3-window minimum sustained-run requirement exists to prevent a handful of scattered, isolated positive windows -- which could occur by chance even at a 30\% overall rate -- from counting as a genuine detection. This value was chosen to sit below CHB-MIT's own shortest annotated seizure duration (7 seconds), so that genuinely short seizures remain detectable in principle. Furthermore, it sits comfortably below the conventional 10-second duration threshold widely adopted in clinical electrographic seizure definition and commercial long-term video-EEG monitoring systems \citep{tatum2022}, balancing early event capture against transient artefact rejection.
+\textbf{Detection criterion.} An event counts as detected only if \emph{both} of the following hold: at least 30\% of its windows are predicted positive, and there is a minimum sustained run of 3 consecutive positive-predicted windows (approximately 3 seconds, at the 1-second window step used throughout this project). Neither threshold alone was judged sufficient. The 30\% figure reflects a biological reality rather than an arbitrary convenience: seizures have a recruitment phase at onset (roughly the first 2--5 seconds) during which the EEG signal is often still sub-threshold for a window-level classifier trained predominantly on fully-developed ictal activity, so requiring near-total window coverage across an event would penalise the model for a phase of the seizure it was never realistically going to catch; catching the propagation phase once the seizure is fully underway is treated here as clinically sufficient. The 3-window minimum sustained-run requirement exists to prevent a handful of scattered, isolated positive windows -- which could occur by chance even at a 30\% overall rate -- from counting as a true detection. This value was chosen to sit below CHB-MIT's own shortest annotated seizure duration (7 seconds), so that shorter seizures remain detectable in principle. Furthermore, it sits comfortably below the conventional 10-second duration threshold widely adopted in clinical electrographic seizure definition and commercial long-term video-EEG monitoring systems \citep{tatum2022}, balancing early event capture against transient artefact rejection.
 
 \realfig{event_formation_criteria.png}{0.9}{Event-formation criteria illustrated: (a) the 60-second gap-tolerance rule merging or separating nearby positive-window clusters into one or two events; (b) and (c) the joint detection criterion (\(\geq\)30\% window coverage \emph{and} \(\geq\)3 consecutive positive windows), showing both a detected event and two ways an event can fail to qualify.}{fig:event-formation}
 
 \textbf{Detection latency}, reported alongside sensitivity and FP/hr throughout Chapter~\ref{ch:results}, is measured directly from this same procedure: the time from an event's true onset to the start of its first sustained qualifying run, not a separately computed figure.
 
+\subsection{A Note on a Supplementary Diagnostic}
 
-\subsection{The Collapse Diagnostic}
-
-A model that fires on almost every window it sees will register a high event sensitivity by simple virtue of never staying silent through a genuine seizure. This is an artefact of 
-near-permanent triggering, not genuine discrimination. I built the collapse diagnostic specifically to catch this, and it checks three explicit conditions; a fold or patient 
-result is only reported as a genuine "pass" if \emph{none} of the following trigger:
-
-\begin{enumerate}
-    \item \textbf{Window specificity below 0.9.} I set this floor because a model firing on more than 10\% of genuinely non-seizure windows is, in my judgement, already behaving closer 
-    to an alarm that is near-permanently active than to a discriminating detector, regardless of how high its reported sensitivity looks.
-    \item \textbf{A single contiguous predicted block covering more than 90\% of the recording.} This catches the specific over-triggering pattern that motivated this diagnostic in the first place: a model that fires once and simply never stops, which technically overlaps every genuine seizure event (hence a sensitivity of 1.0) without ever having discriminated anything.
-    \item \textbf{Positive-window fraction below 10\% of the true seizure-window rate.} This is a mirror-image failure where the model that has effectively gone silent, firing so rarely that its few detections are more plausibly noise than genuine discrimination. Here I am simply enforcing an under-firing collapse that the first two conditions alone would not.
-\end{enumerate}
-
-The canonical illustration of why this gate is necessary, referenced repeatedly throughout Chapter~\ref{ch:results}, is chb13 under the C1 frozen-pool model, whose apparently perfect event sensitivity was in fact almost entirely condition (1) and (2) above: a single, near-permanent predicted block covering nearly the whole recording. The three conditions above are implemented directly as follows:
-
-\realfig{collapse_diagnostic_illustration.png}{0.85}{Three panels illustrating the collapse diagnostic's three conditions: (a) a normal, discriminating prediction trace; (b) an over-firing collapse (a single near-permanent predicted block); (c) an under-firing collapse (almost no detections).}{fig:collapse-illustration}
-
-\begin{verbatim}
-def collapse_diagnostic(y_pred, window_specificity, y_true=None,
-                         step_s=1.0, gap_tolerance_s=60.0,
-                         spec_floor=0.9, block_frac_ceiling=0.9,
-                         underfire_ratio_floor=0.1):
-    # Condition (1): window specificity below the floor
-    if window_specificity < spec_floor:
-        reasons.append(f"window specificity {window_specificity} < {spec_floor}")
-    # Condition (2): a single block covers too much of the recording
-    if largest_block_frac > block_frac_ceiling:
-        reasons.append("largest predicted block too large")
-    # Condition (3): under-firing relative to the true seizure rate
-    if pos_frac < underfire_ratio_floor * true_frac:
-        reasons.append("positive-window fraction too low -- likely under-firing")
-    return {"pass": len(reasons) == 0, "reasons": reasons, ...}
-\end{verbatim}
+A model that fires on almost every window it sees will register a high event sensitivity by simple virtue of never staying silent through a true seizure which is an artefact of near-permanent triggering, not real discrimination. During analysis, I additionally screened results against a supplementary, self-designed heuristic (based on window specificity and predicted-block length) intended to flag this artefact. This heuristic is not a standard or externally validated technique, and none of this dissertation's primary reported figures depend on it. As such, the results in Chapter~\ref{ch:results} are reported using the same event-level sensitivity and FP/hr metrics described above, unfiltered, so that they remain directly comparable to \citet{ali2024} and \citet{shoeb2009} on equal terms. The full definition of this supplementary diagnostic, and a labelled secondary analysis using it, are given in the Limitations and Future Work discussion in Chapter~\ref{ch:discussion} rather than presented here as if it were established methodology.
 
 \subsection{Primary Metric: AUPRC over ROC-AUC}
 
@@ -285,7 +255,7 @@ dissertation's results to be cross-referenced against that literature directly. 
 
 The justification for this ordering is not just the abstract imbalance argument; it rests on the back of a correction encountered during this project. A 
 base-rate-relative AUPRC skill ratio -- a patient's raw AUPRC divided by their own seizure-window base rate, correcting for the fact that raw AUPRC is not directly comparable across 
-patients with different prevalence -- revealed that chb15's C1 ratio was 6.0$\times$ base rate (indicating genuinely decent discrimination, with the model's threshold simply misplaced), while chb13's ratio was only 1.3$\times$ (near-chance, indicating genuinely weak discrimination). This is close to the \emph{opposite} of the hypothesis I began this project with, which expected chb15 to be genuinely inert and chb13/chb16 to be cases of misplaced thresholding. 
+patients with different prevalence -- revealed that chb15's C1 ratio was 6.0$\times$ base rate (indicating decent discrimination, with the model's threshold simply misplaced), while chb13's ratio was only 1.3$\times$ (near-chance, indicating weak discrimination). This is close to the \emph{opposite} of the hypothesis I began this project with, which expected chb15 to be inert and chb13/chb16 to be cases of misplaced thresholding. 
 Separately, across the full 15-fold LOPO sweep, some patients' ROC-AUC values look superficially reasonable in isolation while the base-rate-corrected AUPRC reveals near-chance discrimination once prevalence is accounted for. Both observations are stated here as justification for this metric choice, rather than relying on the imbalance argument alone.
 
 \subsection{Conformal Prediction for FP/hr Calibration}
@@ -298,7 +268,7 @@ Calibration uses each patient's chronological validation split which is data alr
 P(\text{a future non-seizure window triggers the system}) \leq \alpha
 \end{equation}
 
-Throughout this project's conformal-calibrated evaluations, $\alpha$ is set to $0.01$. This guarantees that no more than 1\% of genuinely non-seizure windows will trigger a false alarm on unseen test data. Crucially, this calibration is applied strictly on a per-patient basis (like for C2) where intra-patient exchangeability holds; it is deliberately not extended cross-patient, where that assumption breaks down.
+Throughout this project's conformal-calibrated evaluations, $\alpha$ is set to $0.01$. This guarantees that no more than 1\% of actual non-seizure windows will trigger a false alarm on unseen test data. Crucially, this calibration is applied strictly on a per-patient basis (like for C2) where intra-patient exchangeability holds; it is deliberately not extended cross-patient, where that assumption breaks down.
 
 \section{Hardware Deployment}
 
@@ -308,9 +278,18 @@ Deployment used a Raspberry Pi 5 fitted with a BrainChip AKD1000 v1 M.2 card via
 
 A carrier-board substitution (a Pineboards HAT AI Bundle, attempted mid-project for improved physical clearance) failed to enumerate the AKD1000 card at all. I isolated this to a fault in the replacement board or its flexible printed circuit cable, not the Raspberry Pi itself or the AKD1000 card -- confirmed via \texttt{lspci} showing no device present on the replacement board where the original board correctly enumerated the AKD1000 -- and reverted to the original, confirmed-working M.2 HAT+ for all hardware results reported in this dissertation.
 
+\subsection{Computational Complexity}
+\label{sec:compute-complexity}
+
+Before presenting measured power figures (Section~\ref{sec:results-hw}), it is worth first establishing what the network is actually computing per inference, since a power figure in isolation says little without a sense of the computational load producing it. Each convolutional layer's multiply-accumulate (MAC) cost follows the standard complexity bound
+\[
+O(H_{\text{out}} \times W_{\text{out}} \times C_{\text{out}} \times K_h \times K_w \times C_{\text{in}}),
+\]
+the product of the number of output positions, the number of output channels, and the number of multiply-accumulates each output position requires (kernel area times input channels); a dense layer's cost is simply $O(N_{\text{in}} \times N_{\text{out}})$, every input connected to every output once. These are upper bounds on the ANN's dense computational cost prior to quantisation or spiking conversion and Section~\ref{sec:results-hw} returns to why the deployed SNN's \emph{actual} dynamic energy draw does not follow directly from this figure, given the AKD1000's event-driven execution model (Chapter~\ref{ch:background}).
+
 \subsection{Power Measurement Methodology}
 
-Two genuinely different power figures are reported in this dissertation, and neither is presented as validating or superseding the other. The first is a chip-isolated estimate 
+Two different power figures are reported in this dissertation, and neither is presented as validating or superseding the other. The first is a chip-isolated estimate 
 (approximately ~1mW active power), derived from BrainChip's own datasheet figures for the AKD1000's isolated neuromorphic compute, and used in this dissertation's energy-per-inference 
 calculations (Section~\ref{sec:results-hw}).
 
